@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<addon addon_id="quoteME" title="QuoteME !" version_string="1.5" version_id="6" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+  <admin_navigation/>
+  <admin_permissions/>
+  <admin_style_properties/>
+  <admin_templates>
+    <template title="style_property_unit_quoteme"><![CDATA[<input type="hidden" name="checkboxes[]" value="{$property.property_definition_id}" />
+<xen:radiounit name="properties[{$property.property_definition_id}]" value="{$property.propertyValueScalar}" label="{$property.title}">	
+	<xen:option value="absfix" label="{xen:phrase sedo_quoteme_appearance_absfix}" />
+	<xen:option value="abs" label="{xen:phrase sedo_quoteme_appearance_abs}" />
+	<xen:option value="fixed" label="{xen:phrase sedo_quoteme_appearance_fixed}" />
+	<xen:explain>{$property.description}</xen:explain>
+	<xen:html><xen:include template="style_property_unit_extra"><xen:set var="$reset">{xen:phrase reset}</xen:set></xen:include></xen:html>
+</xen:radiounit>
+
+<dl class="ctrlUnit">
+	<dt></dt>
+	<dd><p class="explain">{xen:phrase sedo_quoteme_appearance_pos_desc}</p></dd>
+</dl>
+
+<br />
+<br />
+
+<div align="center">
+	<p style="font-size:11pt; color:grey; font-weight:bold; font-style:italic">{xen:phrase sedo_quoteme_appearance_donation}</p>
+	<br />
+	<p><a rel="nofollow" class="externalLink" target="_blank" href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=F2F8KK7WNSE9Y&lc=US&item_name=C%c3%a9dric%20Claerhout&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted"><img alt="[IMG]" class="bbCodeImage LbImage" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"></a></p>
+	<br />
+</div>]]></template>
+  </admin_templates>
+  <code_events/>
+  <code_event_listeners>
+    <listener event_id="template_create" execute_order="10" callback_class="Sedo_QuoteME_Listener_PreloadTemplates" callback_method="template_preload" active="1" description="Preload templates"/>
+    <listener event_id="template_post_render" execute_order="10" callback_class="Sedo_QuoteME_Listener_Templates" callback_method="postrender" active="1" description="Templates Post Render"/>
+  </code_event_listeners>
+  <cron/>
+  <email_templates/>
+  <optiongroups>
+    <group group_id="sedo_quoteme" display_order="999" debug_only="0"/>
+    <option option_id="quoteme_htmlmode_parseme" edit_format="select" data_type="boolean" can_backup="1">
+      <default_value>0</default_value>
+      <edit_format_params>0={xen:phrase quotemehtml_bbcode}
+1={xen:phrase quotemehtml_html}</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="sedo_quoteme" display_order="2"/>
+    </option>
+    <option option_id="quoteme_mode" edit_format="radio" data_type="string" can_backup="1">
+      <default_value>QmText</default_value>
+      <edit_format_params>QmText={xen:phrase QuoteMe_Options_Text}
+QmHtml={xen:phrase QuoteMe_Options_Html}
+QmHtmlWrap={xen:phrase QuoteMe_Options_Html_Wrap}</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="sedo_quoteme" display_order="1"/>
+    </option>
+  </optiongroups>
+  <permissions>
+    <permission_groups/>
+    <permissions/>
+    <interface_groups/>
+  </permissions>
+  <phrases>
+    <phrase title="option_group_sedo_quoteme" version_id="0" version_string="1.0"><![CDATA[QuoteME!]]></phrase>
+    <phrase title="option_group_sedo_quoteme_description" version_id="0" version_string="1.0"><![CDATA[QuoteME! options]]></phrase>
+    <phrase title="option_quoteme_htmlmode_parseme" version_id="3" version_string="1.2"><![CDATA[Html mode output]]></phrase>
+    <phrase title="option_quoteme_htmlmode_parseme_explain" version_id="3" version_string="1.2"><![CDATA[Do you want to insert highlighted text inside Editor with Bb Codes or with Clean Parsed Html? Default value: <b>Bb Codes</b>.]]></phrase>
+    <phrase title="option_quoteme_mode" version_id="0" version_string="1.0"><![CDATA[QuoteME! Mode]]></phrase>
+    <phrase title="option_quoteme_mode_explain" version_id="0" version_string="1.0"><![CDATA[<b>The 'text' mode</b>  will only copy the raw highlighted text inside the editor <span style="color:orange;font-weight:bolder">-Recommended-</span><br />
+<b>The 'html' mode</b> will try to get the html of the highlighted text, convert it to bbcode (only the basic elements recognized by Xenforo) and send it to the editor<br />
+<b>The 'html wrap' mode</b>  will do the same as above and will try to get the  'main tag' of the parent element and will wrap it around the highlighted text]]></phrase>
+    <phrase title="quoteme" version_id="0" version_string="1.0"><![CDATA[Quote ME !]]></phrase>
+    <phrase title="quotemehtml_bbcode" version_id="3" version_string="1.2"><![CDATA[Bb Codes]]></phrase>
+    <phrase title="quotemehtml_html" version_id="3" version_string="1.2"><![CDATA[Clean Parsed Html]]></phrase>
+    <phrase title="QuoteMe_Options_Html" version_id="0" version_string="1.0"><![CDATA[Html]]></phrase>
+    <phrase title="QuoteMe_Options_Html_Wrap" version_id="0" version_string="1.0"><![CDATA[Html wrap]]></phrase>
+    <phrase title="QuoteMe_Options_Text" version_id="0" version_string="1.0"><![CDATA[Text]]></phrase>
+    <phrase title="sedo_quoteme_appearance_abs" version_id="3" version_string="1.2"><![CDATA[Absolute without correction (old method)]]></phrase>
+    <phrase title="sedo_quoteme_appearance_absfix" version_id="3" version_string="1.2"><![CDATA[Absolute with correction]]></phrase>
+    <phrase title="sedo_quoteme_appearance_donation" version_id="3" version_string="1.2"><![CDATA[<b>If this add-on is useful to your community, please consider making a donation to support me - thank you :)</b>]]></phrase>
+    <phrase title="sedo_quoteme_appearance_fixed" version_id="3" version_string="1.2"><![CDATA[Fixed]]></phrase>
+    <phrase title="sedo_quoteme_appearance_pos_desc" version_id="3" version_string="1.2"><![CDATA[Two positioning methods for the QuoteMe Container are available: <a href="http://www.w3schools.com/cssref/pr_class_position.asp" target="_blank">absolute or fixed</a>.<br/>
+<br/>
+As you can see the absolute positioning can be with or without correction. In previous version of this addon, I was asking  to manually set a top-margin to  fix a gap between the mouse position & the QuoteMe Container. It seems I've found a solution to automatically solve this. <br />
+<br />
+Try  then the new "absolute with correction" method (which is now set by default). If it doesn't work, use the old method with setting a top-margin for the QuoteMe Container.<br />
+<br />
+If absolute methods don't work at all, just use the Fixed positioning method.]]></phrase>
+    <phrase title="style_property_group_QuoteMe_master" version_id="0" version_string="1.0"><![CDATA[QuoteME]]></phrase>
+    <phrase title="style_property_group_QuoteMe_master_desc" version_id="0" version_string="1.0"><![CDATA[QuoteMe addon options]]></phrase>
+    <phrase title="style_property_QuoteMeContainer_description_master" version_id="0" version_string="1.0"><![CDATA[]]></phrase>
+    <phrase title="style_property_QuoteMeContainer_master" version_id="0" version_string="1.0"><![CDATA[QuoteMe Container]]></phrase>
+    <phrase title="style_property_quoteme_position_description_master" version_id="3" version_string="1.2"><![CDATA[]]></phrase>
+    <phrase title="style_property_quoteme_position_master" version_id="3" version_string="1.2"><![CDATA[Positioning methods]]></phrase>
+  </phrases>
+  <route_prefixes>
+    <route_type type="public">
+      <prefix original_prefix="quoteme" class="Sedo_QuoteME_Route_Prefix_QuoteME" build_link="none"/>
+    </route_type>
+  </route_prefixes>
+  <style_properties>
+    <property property_name="QuoteMeContainer" property_type="css" definition="1" group_name="QuoteMe" title="QuoteMe Container" description="" css_components="text,background,border,layout,extra" scalar_type="" scalar_parameters="" display_order="1" sub_group=""><![CDATA[{"background-color":"@secondaryLighter","border-color":"@secondaryLight","border-radius":"10px","border-style":"solid","border-width":"1px","color":"@contentText","font-size":"9pt","margin-all":"0","padding-all":"4px"}]]></property>
+    <property property_name="quoteme_position" property_type="scalar" definition="1" group_name="QuoteMe" title="Positioning methods" description="" css_components="" scalar_type="template" scalar_parameters="style_property_unit_quoteme" display_order="1" sub_group="quoteme"><![CDATA[absfix]]></property>
+    <group group_name="QuoteMe" display_order="9999">
+      <title>QuoteME</title>
+      <description>QuoteMe addon options</description>
+    </group>
+  </style_properties>
+  <templates>
+    <template title="quoteME" version_id="3" version_string="1.2"><![CDATA[<xen:require css="quoteME.css" />
+<script type="text/javascript" src="{$javaScriptSource}/sedo/quoteme/quoteme.js"></script>
+
+<div id="QuoteMe" class="quote_me" data-mode="{$mode}" {xen:if '{$mode} != "QmText"', 'data-html="{$htmlmode}"'} data-pos="{xen:property quoteme_position}">{xen:phrase quoteme}</div>]]></template>
+    <template title="quoteME.css" version_id="0" version_string="1.0"><![CDATA[.quote_me{
+	{xen:property QuoteMeContainer}
+	display:none;
+	position:absolute;
+	cursor: pointer;
+}]]></template>
+  </templates>
+  <bb_code_media_sites/>
+  <template_modifications>
+    <modification title="QuoteME" template_title="message" execute_order="10" modification_type="preg_replace" callback_class="" callback_method="" description="Add meta &quot;author-id&quot;" version_id="1" version_string="1.1" active="1">
+      <search_value><![CDATA[#data-author=".+?"#]]></search_value>
+      <replace_value><![CDATA[$0 data-author-id="{$message.user_id}"]]></replace_value>
+    </modification>
+  </template_modifications>
+</addon>
