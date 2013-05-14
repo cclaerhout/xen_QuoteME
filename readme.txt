@@ -1,5 +1,5 @@
 **********************************
-* QuoteME v.1.5                  *
+* QuoteME v.1.6                  *
 * by Cédric CLAERHOUT            *
 **********************************
 
@@ -8,6 +8,10 @@
 **********************************
 This addon allows you to select some text in a message and quote it into the editor with a little popup
 I had this addon on vBulletin and my members and I loved it. So now here it is on XenForo :)
+
+Since version 1.6 :
+	> The quotes can be saved inside the user broswer memory to have a "transPage" mode which is kind of cross threads multi quotes mode.
+	> You also have an option to automatically activate the QuoteME popup after selected some text in a post OR you can activate the QuoteME popup once a trigger has been pressed (located at the top right of the thread)
 
 Works with 
 > the TinyMCE editor
@@ -25,6 +29,7 @@ http://xenforo.com/community/resources/browser-detection-mobile-msie.1098/
 **********************************
 *         Installation           *
 **********************************
+0) You must first install TMS: http://xenforo.com/community/resources/template-modification-system-tms.293/
 1) Upload the files on your forum directory
 2) Import xml file
 
@@ -43,6 +48,11 @@ AdminCp=>Appearance=>Style properties=>(Select your style)=>QuoteME
 
 >This addon has also options you can configurate, just go here:
 AdminCp=>Home=>Options=>QuoteME
+
+**********************************
+*           References           *
+**********************************
+The transPage mode is provided thanks to the script jStorage (http://www.jstorage.info) - special thanks to his creator, Andris Reinman.
 
 
 
