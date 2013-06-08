@@ -1,4 +1,4 @@
-/*QuoteME (1.6) by Cédric CLAERHOUT - Licence: CC by*/
+/*QuoteME (1.6.1) by Cédric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo == 'undefined') var Sedo = {};
 
 !function($, window, document, _undefined)
@@ -232,7 +232,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 					t.RTE_BBcodeEditor();
 				break;
 				case 'rteFull':
-					t.RTE_TinyMCE();
+					t.RTE_Wysiwyg();
 				break;
 				case 'notRte':
 					t.notRTE_BBcodeEditor();
@@ -332,16 +332,16 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			$editor = $('.bbCodeEditorContainer').find('textarea.textCtrl');
 			$editor.val( $editor.val() + this.SelectedText);
 		},
-		RTE_TinyMCE: function()		
+		RTE_Wysiwyg: function()		
 		{
 			var t = this;
-			
-			if(!tinyMCE.activeEditor){
-				console.info("Error: TinyMCE is not loaded");
-				return false; // Prevent error when TinyMCE is not loaded
-			}
 
-			tinyMCE.execInstanceCommand('ctrl_message_html','mceInsertContent',false, t.SelectedText);
+			if(typeof tinyMCE !== 'undefined'){
+				if(tinyMCE.majorVersion > 3)
+					tinyMCE.get('ctrl_message_html').execCommand('mceInsertContent', false, t.SelectedText);
+				else
+					tinyMCE.getInstanceById('ctrl_message_html').execCommand('mceInsertContent', false, t.SelectedText);
+			}
 		},
 		unSelect: function()
 		{
