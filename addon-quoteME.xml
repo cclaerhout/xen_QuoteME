@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="quoteME" title="QuoteME !" version_string="1.6.1" version_id="8" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+<addon addon_id="quoteME" title="QuoteME !" version_string="1.7.0" version_id="8" url="" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -28,13 +28,15 @@
 	<br />
 </div>]]></template>
   </admin_templates>
+  <admin_template_modifications/>
   <code_events/>
   <code_event_listeners>
-    <listener event_id="template_create" execute_order="10" callback_class="Sedo_QuoteME_Listener_PreloadTemplates" callback_method="template_preload" active="1" description="Preload templates"/>
-    <listener event_id="template_post_render" execute_order="10" callback_class="Sedo_QuoteME_Listener_Templates" callback_method="postrender" active="1" description="Templates Post Render"/>
+    <listener event_id="template_create" execute_order="10" callback_class="Sedo_QuoteME_Listener_PreloadTemplates" callback_method="template_preload" active="1" hint="" description="Preload templates"/>
+    <listener event_id="template_post_render" execute_order="10" callback_class="Sedo_QuoteME_Listener_Templates" callback_method="postrender" active="1" hint="" description="Templates Post Render"/>
   </code_event_listeners>
   <cron/>
   <email_templates/>
+  <email_template_modifications/>
   <optiongroups>
     <group group_id="sedo_quoteme" display_order="999" debug_only="0"/>
     <option option_id="quoteme_activation" edit_format="select" data_type="boolean" can_backup="1">
@@ -207,6 +209,17 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
 	>{xen:phrase sedo_quoteme_fastquotes_menu}</a>
 </xen:if>]]></template>
   </templates>
+  <public_template_modifications>
+    <modification template="message" modification_key="quoteme_author_id" description="Easy way to get get the author id" execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#data-author=".+?"#]]></find>
+      <replace><![CDATA[$0 data-author-id="{$message.user_id}"]]></replace>
+    </modification>
+    <modification template="thread_view" modification_key="quoteme_menu" description="Add quoteme menu" execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#SelectionCountContainer[^"]*?"[^>]*?>#ui]]></find>
+      <replace><![CDATA[$0 
+		<xen:include template="quoteME_menu" />]]></replace>
+    </modification>
+  </public_template_modifications>
   <bb_code_media_sites/>
   <template_modifications>
     <modification title="QuoteME" template_title="message" execute_order="10" modification_type="preg_replace" callback_class="" callback_method="" description="Add meta &quot;author-id&quot;" version_id="1" version_string="1.1" active="1">

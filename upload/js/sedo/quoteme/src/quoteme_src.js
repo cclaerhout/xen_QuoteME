@@ -1,4 +1,4 @@
-/*QuoteME (1.6.1) by Cédric CLAERHOUT - Licence: CC by*/
+/*QuoteME (1.7.0) by Cédric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo == 'undefined') var Sedo = {};
 
 !function($, window, document, _undefined)
@@ -10,6 +10,14 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		QM: '#QuoteMe',
 		QMT: '#QuoteMeTrigger',
 		QME: '#QuoteMeEl',
+		editorID: 'ctrl_message_html',
+		isRte: false,
+		isRteBbCode: false,
+		isTinyMCE: false,
+		isRedactor: false,
+		editorType: 'notRte', //notRte rteBB rteFull
+		redactor: '',
+		srcType: 'txt',
 		init: function($element)
 		{
 			var t = Sedo.QuoteME;
@@ -109,11 +117,37 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		getParams: function()
 		{
-			/*Editor type*/
-			var t = this;
-			t.editor = 'notRte';
+			$editor = $('#'+this.editorID);
+
+			var t = this,
+			redactor = $editor.data('redactor');
+
+			/*Editor datas*/
 			
 			if (typeof tinyMCE !== 'undefined') {
+				this.isTinyMCE = true;
+				this.isRte = true;
+			}
+			
+			if (typeof redactor !== 'undefined') {
+				this.isRedactor = true;
+				this.redactor = redactor;
+				this.isRte = true;
+			}
+			
+			if(this.isRte == true && $editor.attr('disabled')){
+				this.isRteBbCode = true;
+			}
+
+			if(this.isRte == true){
+				this.editorType = (this.isRteBbCode == true) ? 'rteBB' : 'rteFull';
+			}
+			
+			this.srcType = (this.editorType == 'rteBB') ? 'text' : 'html';
+			
+		
+			/*
+			if (this.isTinyMCE || this.isRedactor) {
 				$bbcodeEditor = $('.bbCodeEditorContainer');
 				
 				if( $bbcodeEditor.length != 0 )
@@ -121,8 +155,6 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				else
 					t.editor = 'rteFull';
       			}
-
-			t.srcType = (t.editor == 'rteFull') ? 'html' : 'txt';
       			
 			/*Selection Mode*/
       			$QM = $(t.QM); 
@@ -162,7 +194,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 					break;
 			}
 
-			if(t.checkHtml === true && t.editor == 'rteFull'){
+			if(t.checkHtml === true && t.editorType == 'rteFull'){
 				t.SelectedMode = 'html';
 				t.SelectedText = t.getSelectedTextHtml();
 			} else{
@@ -226,8 +258,8 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		edDispatcher: function()
 		{
 			var t = this;
-			console.info('Editor mode: '+t.editor+', Text mode: '+t.Mode);
-			switch (t.editor) {
+			console.info('Editor mode: '+t.editorType+', Text mode: '+t.Mode);
+			switch (t.editorType) {
 				case 'rteBB':
 					t.RTE_BBcodeEditor();
 				break;
@@ -246,7 +278,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			objQM = t.getObjQM(),
 			data = t.SelectedText,
 			i = 1,
-			mode = (t.editor == 'rteFull') ? 'html' : 'txt';
+			mode = (t.editorType == 'rteFull') ? 'html' : 'txt';
 			
 			if(!objQM){
 				var objQM = {};
@@ -306,9 +338,18 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			}
 			
 			/*TinyMCE*/
-			var breakOpen = (tinyMCE.isIE) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
-			breakEnd = breakOpen, 
-			edContent = tinyMCE.activeEditor.getContent();
+			if(this.isTinyMCE){
+				var breakOpen = (tinyMCE.isIE) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
+				breakEnd = breakOpen, 
+				edContent = tinyMCE.activeEditor.getContent();
+			}
+			
+			/*Redactor*/
+			if(this.isRedactor){
+				var breakOpen = (this.redactor.browser('msie')) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
+				breakEnd = breakOpen, 
+				edContent = this.redactor.getCode();
+			}
 				
 			if(!edContent)
 				breakOpen = '';
@@ -316,7 +357,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			if(t.HtmlMode == 0 && chk == 'html')
 				selText = t.escapeHtml(selText);
 
-			if(chk != 'html'){ //The active editor is TinyMCE but the text has been saved with the text format
+			if(chk != 'html'){ //The active editor is RTE but the text has been saved with the text format
 				selText = t.escapeHtml(selText);
 			}
 
@@ -335,12 +376,14 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		RTE_Wysiwyg: function()		
 		{
 			var t = this;
-
-			if(typeof tinyMCE !== 'undefined'){
+			
+			if(this.isTinyMCE){
 				if(tinyMCE.majorVersion > 3)
 					tinyMCE.get('ctrl_message_html').execCommand('mceInsertContent', false, t.SelectedText);
 				else
 					tinyMCE.getInstanceById('ctrl_message_html').execCommand('mceInsertContent', false, t.SelectedText);
+			}else if(this.isRedactor){
+				this.redactor.insertHtml(t.SelectedText);
 			}
 		},
 		unSelect: function()

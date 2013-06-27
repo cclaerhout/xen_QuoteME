@@ -1,5 +1,5 @@
 **********************************
-* QuoteME v.1.6                  *
+* QuoteME v.1.7                  *
 * by Cédric CLAERHOUT            *
 **********************************
 
@@ -14,8 +14,9 @@ Since version 1.6 :
 	> You also have an option to automatically activate the QuoteME popup after selected some text in a post OR you can activate the QuoteME popup once a trigger has been pressed (located at the top right of the thread)
 
 Works with 
-> the TinyMCE editor
-> the normal 'editor' (textarea) being used with TinyMCE
+> the TinyMCE editor (mce3/mce4)
+> the XenForo Redactor editor
+> the normal 'editor' (textarea) being used with TinyMCE/XenForo Redactor
 > the normal 'editor' (textarea) used alone
 > Markitup Integrator addon
 
