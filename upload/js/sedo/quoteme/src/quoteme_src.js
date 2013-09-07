@@ -1,4 +1,4 @@
-/*QuoteME (1.7.0) by Cédric CLAERHOUT - Licence: CC by*/
+/*QuoteME (1.7.1) by Cédric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo == 'undefined') var Sedo = {};
 
 !function($, window, document, _undefined)
@@ -129,7 +129,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				this.isRte = true;
 			}
 			
-			if (typeof redactor !== 'undefined') {
+			if (typeof redactor !== 'undefined' && redactor !== null) {
 				this.isRedactor = true;
 				this.redactor = redactor;
 				this.isRte = true;
@@ -142,9 +142,8 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			if(this.isRte == true){
 				this.editorType = (this.isRteBbCode == true) ? 'rteBB' : 'rteFull';
 			}
-			
-			this.srcType = (this.editorType == 'rteBB') ? 'text' : 'html';
-			
+
+			this.srcType = (this.editorType == 'rteFull') ? 'html' : 'txt';
 		
 			/*
 			if (this.isTinyMCE || this.isRedactor) {
