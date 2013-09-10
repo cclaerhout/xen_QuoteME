@@ -1,4 +1,4 @@
-/*QuoteME (1.7.1) by Cédric CLAERHOUT - Licence: CC by*/
+/*QuoteME (1.7.2) by Cédric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo == 'undefined') var Sedo = {};
 
 !function($, window, document, _undefined)
@@ -99,7 +99,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			*/
 			$QM.unbind('click').bind('click', function(e)
 	       	  	{
-				if (t.SelectedMode == 'text') {
+				if (t.SelectedMode == 'txt') {
 					t.execute(t.SelectedText);
 				} else{
 					if(t.SelectedText){
@@ -160,6 +160,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			t.Mode = $QM.data('mode');
 
 			/*Html Mode*/
+			t.HtmlMode = 0;
 			if( t.Mode != 'QmText'){
 				t.HtmlMode = parseInt($QM.data('html'));
 			}
@@ -179,7 +180,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			switch (t.Mode) {
 				case 'QmText': 
 					//The Mode must be setup first!!!
-					t.Mode = 'text';
+					t.Mode = 'txt';
 					t.checkHtml = false;
 					break;
 				case 'QmHtml': 
@@ -197,7 +198,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				t.SelectedMode = 'html';
 				t.SelectedText = t.getSelectedTextHtml();
 			} else{
-				t.SelectedMode = 'text';
+				t.SelectedMode = 'txt';
 				t.SelectedText = t.getSelectedText();
 			}
 			//Check if selection (text-mode) is empty
@@ -205,7 +206,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				return false;
 	
 			//Check if selection (html-mode) is empty or if the content has a <embed> tag => disable flash
-			if ( t.Mode != 'text' && t.SelectedText.match(/<(\w+)(?:[^>]+?)?><\/\1>|<embed[^>]+?>/i) )
+			if ( t.Mode != 'txt' && t.SelectedText.match(/<(\w+)(?:[^>]+?)?><\/\1>|<embed[^>]+?>/i) )
 				return false;
 			
 			//Get Author & MessageID 
@@ -320,47 +321,50 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		prepareSel: function(chk)
 		{
-			var t = this, selText = t.SelectedText, mode = t.srcType;
+			var src = this, selText = src.SelectedText, mode = src.srcType;
 			
 			if(typeof chk === 'undefined')
 				chk = mode; // if the chk is undefined it means transpage is not activated, let's copy mode to chk then
 			
-			/*Bb Code Editor*/			
-			if(mode == 'txt'){
-				if(chk != 'txt'){ //The active editor is a BbCode editor but the text has been saved with the html format
-					selText = selText.replace(/<[^>]+>/ig,'');	 //=> strip tags
-					selText = t.unescapeHtml(selText); 			//=> unescape tinyMce escaped html
+			/*Bb Code Editor*/		
+				if(mode == 'txt'){
+					if(chk != 'txt'){ //The active editor is a BbCode editor but the text has been saved with the html format
+						selText = selText.replace(/<[^>]+>/ig,'');	 //=> strip tags
+						selText = src.unescapeHtml(selText); 			//=> unescape tinyMce escaped html
+					}
+					
+					src.SelectedText = '\r\n' + selText + '\r\n';
+					return;
+				}
+
+			/*RTE Editor*/
+			
+				/*TinyMCE*/
+				if(this.isTinyMCE){
+					var breakOpen = (tinyMCE.isIE) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
+					breakEnd = breakOpen, 
+					edContent = tinyMCE.activeEditor.getContent();
 				}
 				
-				t.SelectedText = '\r\n' + selText + '\r\n';
-				return;
-			}
-			
-			/*TinyMCE*/
-			if(this.isTinyMCE){
-				var breakOpen = (tinyMCE.isIE) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
-				breakEnd = breakOpen, 
-				edContent = tinyMCE.activeEditor.getContent();
-			}
-			
-			/*Redactor*/
-			if(this.isRedactor){
-				var breakOpen = (this.redactor.browser('msie')) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
-				breakEnd = breakOpen, 
-				edContent = this.redactor.getCode();
-			}
-				
-			if(!edContent)
-				breakOpen = '';
-
-			if(t.HtmlMode == 0 && chk == 'html')
-				selText = t.escapeHtml(selText);
-
-			if(chk != 'html'){ //The active editor is RTE but the text has been saved with the text format
-				selText = t.escapeHtml(selText);
-			}
-
-			t.SelectedText = breakOpen+'<p>'+selText+'</p>'+breakEnd;
+				/*Redactor*/
+				if(this.isRedactor){
+					var breakOpen = (this.redactor.browser('msie')) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
+					breakEnd = breakOpen, 
+					edContent = this.redactor.getCode();
+				}
+					
+				if(!edContent)
+					breakOpen = '';
+	
+				if(src.HtmlMode == 0 && chk == 'html'){//Src Mode: text || Output Mode: Html (wysiwyg Editor)
+					selText = src.escapeHtml(selText);
+				}
+	
+				if(chk != 'html'){ //The active editor is RTE but the text has been saved with the text format
+					selText = src.escapeHtml(selText);
+				}
+	
+				src.SelectedText = breakOpen+'<p>'+selText+'</p>'+breakEnd;
 		},
 		notRTE_BBcodeEditor: function()
 		{
