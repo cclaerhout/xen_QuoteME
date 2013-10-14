@@ -1,4 +1,4 @@
-/*QuoteME (1.7.2) by Cédric CLAERHOUT - Licence: CC by*/
+/*QuoteME (1.7.3) by Cédric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo == 'undefined') var Sedo = {};
 
 !function($, window, document, _undefined)
@@ -134,10 +134,8 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				this.redactor = redactor;
 				this.isRte = true;
 			}
-			
-			if(this.isRte == true && $editor.attr('disabled')){
-				this.isRteBbCode = true;
-			}
+
+			this.isRteBbCode = (this.isRte == true && $editor.attr('disabled')) ? true : false;
 
 			if(this.isRte == true){
 				this.editorType = (this.isRteBbCode == true) ? 'rteBB' : 'rteFull';
@@ -321,7 +319,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		prepareSel: function(chk)
 		{
-			var src = this, selText = src.SelectedText, mode = src.srcType;
+			var src = this, selText = src.SelectedText, mode = src.srcType, breakOpen, breakEnd, hasContent;
 			
 			if(typeof chk === 'undefined')
 				chk = mode; // if the chk is undefined it means transpage is not activated, let's copy mode to chk then
@@ -332,8 +330,12 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 						selText = selText.replace(/<[^>]+>/ig,'');	 //=> strip tags
 						selText = src.unescapeHtml(selText); 			//=> unescape tinyMce escaped html
 					}
-					
-					src.SelectedText = '\r\n' + selText + '\r\n';
+
+					$editor = src.getBbCodeEditor();
+					hasContent = $editor.val();
+					breakOpen = (hasContent) ? '\r\n' : '';
+
+					src.SelectedText = breakOpen + selText + '\r\n';
 					return;
 				}
 
@@ -341,19 +343,23 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			
 				/*TinyMCE*/
 				if(this.isTinyMCE){
-					var breakOpen = (tinyMCE.isIE) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
-					breakEnd = breakOpen, 
-					edContent = tinyMCE.activeEditor.getContent();
+					breakOpen = (tinyMCE.isIE) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
+					breakEnd = breakOpen;
+					 
+					hasContent = tinyMCE.activeEditor.getContent();
 				}
 				
 				/*Redactor*/
 				if(this.isRedactor){
-					var breakOpen = (this.redactor.browser('msie')) ? '<p>&nbsp;</p>' : '<p><br /></p>', 
-					breakEnd = breakOpen, 
-					edContent = this.redactor.getCode();
-				}
+					breakOpen = (this.redactor.browser('msie')) ? '<p>&nbsp;</p>' : '<p><br /></p>';
+					breakEnd = breakOpen;
 					
-				if(!edContent)
+					hasContent = this.redactor.getCode();
+				}
+
+				hasContent = hasContent.replace(/<[^>]+>/ig,'');
+
+				if(!hasContent)
 					breakOpen = '';
 	
 				if(src.HtmlMode == 0 && chk == 'html'){//Src Mode: text || Output Mode: Html (wysiwyg Editor)
@@ -368,12 +374,12 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		notRTE_BBcodeEditor: function()
 		{
-			$editor = $('.textCtrl.MessageEditor');
+			$editor = this.getBbCodeEditor();
 			$editor.val( $editor.val() + this.SelectedText);
 		},
 		RTE_BBcodeEditor: function()
 		{
-			$editor = $('.bbCodeEditorContainer').find('textarea.textCtrl');
+			$editor = this.getBbCodeEditor();
 			$editor.val( $editor.val() + this.SelectedText);
 		},
 		RTE_Wysiwyg: function()		
@@ -387,6 +393,18 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 					tinyMCE.getInstanceById('ctrl_message_html').execCommand('mceInsertContent', false, t.SelectedText);
 			}else if(this.isRedactor){
 				this.redactor.insertHtml(t.SelectedText);
+			}
+		},
+		getBbCodeEditor: function(manual)
+		{
+			var src = this, edType = (manual || src.editorType);
+			
+			switch (edType) {
+				case 'rteBB': return $('.bbCodeEditorContainer').find('textarea.textCtrl');
+				case 'notRte': return $('.textCtrl.MessageEditor');
+				default: 
+					console.info('Bb Editor not found');				
+					return $();
 			}
 		},
 		unSelect: function()
