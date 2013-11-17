@@ -357,7 +357,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 					hasContent = this.redactor.getCode();
 				}
 
-				hasContent = hasContent.replace(/<[^>]+>/ig,'');
+				hasContent = hasContent.replace(/<[^>]+>|&nbsp;/ig,'');
 
 				if(!hasContent)
 					breakOpen = '';
@@ -392,7 +392,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				else
 					tinyMCE.getInstanceById('ctrl_message_html').execCommand('mceInsertContent', false, t.SelectedText);
 			}else if(this.isRedactor){
-				this.redactor.insertHtml(t.SelectedText);
+				this.redactor.insertHtml(t.SelectedText);//bug on IE (the last quote is preprend instead of being append to the content
 			}
 		},
 		getBbCodeEditor: function(manual)
@@ -571,10 +571,11 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				var i = t.getObjIdx(objQM);
 
 				$e.parent().show();
-				$(t.QME).text(i)
+				$(t.QME).text(i-1)
 			}
 				
 			$e.click(function(e){
+				e.preventDefault();
 				t.transAction();
 			});		
 		}
