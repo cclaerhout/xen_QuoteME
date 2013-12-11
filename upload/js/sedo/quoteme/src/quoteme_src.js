@@ -1,4 +1,4 @@
-/*QuoteME (1.7.3) by Cédric CLAERHOUT - Licence: CC by*/
+/*QuoteME (1.8.1) by Cédric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo == 'undefined') var Sedo = {};
 
 !function($, window, document, _undefined)
@@ -384,15 +384,22 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		RTE_Wysiwyg: function()		
 		{
-			var t = this;
-			
-			if(this.isTinyMCE){
-				if(tinyMCE.majorVersion > 3)
-					tinyMCE.get('ctrl_message_html').execCommand('mceInsertContent', false, t.SelectedText);
-				else
-					tinyMCE.getInstanceById('ctrl_message_html').execCommand('mceInsertContent', false, t.SelectedText);
-			}else if(this.isRedactor){
-				this.redactor.insertHtml(t.SelectedText);//bug on IE (the last quote is preprend instead of being append to the content
+			var src = this, 
+				editorID = src.editorID,
+				selectedText = src.SelectedText;
+				
+			if(src.isTinyMCE){
+				if(tinyMCE.majorVersion > 3){
+					var args = {
+						skip_focus: true
+					};
+
+					tinyMCE.EditorManager.get(editorID).execCommand('mceInsertContent', false, selectedText, args);
+				}else{
+					tinyMCE.getInstanceById(editorID).execCommand('mceInsertContent', false, selectedText);
+				}
+			}else if(src.isRedactor){
+				src.redactor.insertHtml(selectedText);//bug on IE (the last quote is preprend instead of being append to the content
 			}
 		},
 		getBbCodeEditor: function(manual)
@@ -523,7 +530,8 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 			t.isOn = false;
 
 			$e.show()
-			.click(function(){
+			.click(function(e){
+				e.preventDefault();
 				if($e.hasClass('off')){
 					$e.removeClass('off').addClass('on');
 					t.isOn = true;
