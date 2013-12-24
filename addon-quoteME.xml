@@ -31,6 +31,7 @@
   <admin_template_modifications/>
   <code_events/>
   <code_event_listeners>
+    <listener event_id="load_class_view" execute_order="10" callback_class="Sedo_QuoteME_Listener_NoQuotes" callback_method="extend" active="1" hint="" description="Extend XenForo_ViewPublic_Post_Quote"/>
     <listener event_id="template_create" execute_order="10" callback_class="Sedo_QuoteME_Listener_PreloadTemplates" callback_method="template_preload" active="1" hint="" description="Preload templates"/>
     <listener event_id="template_post_render" execute_order="10" callback_class="Sedo_QuoteME_Listener_Templates" callback_method="postrender" active="1" hint="" description="Templates Post Render"/>
     <listener event_id="tinyquattro_extra_plugins" execute_order="10" callback_class="Sedo_QuoteME_Listener_TinyQuattroPlugin" callback_method="addExtraPlugin" active="1" hint="" description="MCE Extra Plugin"/>
@@ -52,6 +53,12 @@
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
       <relation group_id="sedo_quoteme" display_order="999"/>
+    </option>
+    <option option_id="quoteme_disable_default_quotes" edit_format="onoff" data_type="boolean" can_backup="1">
+      <default_value>0</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="sedo_quoteme" display_order="50"/>
     </option>
     <option option_id="quoteme_htmlmode_parseme" edit_format="select" data_type="boolean" can_backup="1">
       <default_value>0</default_value>
@@ -87,6 +94,8 @@ QmHtmlWrap={xen:phrase QuoteMe_Options_Html_Wrap}</edit_format_params>
     <phrase title="option_quoteme_activation_explain" version_id="6" version_string="1.5"><![CDATA[How QuoteME shoud be activated? If you choose "<b>Direct</b>", as soon as the user will have selected a text, the quoteMe box will appear whereas if you choose "<b>After click</b>", this box will only appear after the user has clicked on a "Fast Quotes" trigger located above the thread.]]></phrase>
     <phrase title="option_quoteme_debug_js_src" version_id="6" version_string="1.5"><![CDATA[[Debug] Development mode]]></phrase>
     <phrase title="option_quoteme_debug_js_src_explain" version_id="6" version_string="1.5"><![CDATA[This will use the unminified Javascript files.]]></phrase>
+    <phrase title="option_quoteme_disable_default_quotes" version_id="14" version_string="1.8.1"><![CDATA[Disable default quotes]]></phrase>
+    <phrase title="option_quoteme_disable_default_quotes_explain" version_id="14" version_string="1.8.1"><![CDATA[This will disable quotes paste on click reply button.]]></phrase>
     <phrase title="option_quoteme_htmlmode_parseme" version_id="3" version_string="1.2"><![CDATA[Html mode output]]></phrase>
     <phrase title="option_quoteme_htmlmode_parseme_explain" version_id="3" version_string="1.2"><![CDATA[Do you want to insert highlighted text inside Editor with Bb Codes or with Clean Parsed Html? Default value: <b>Bb Codes</b>.]]></phrase>
     <phrase title="option_quoteme_mode" version_id="0" version_string="1.0"><![CDATA[QuoteME! Mode]]></phrase>
@@ -216,6 +225,10 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
       <find><![CDATA[#data-author=".+?"#]]></find>
       <replace><![CDATA[$0 data-author-id="{$message.user_id}"]]></replace>
     </modification>
+    <modification template="post" modification_key="quoteme_disable_default_quotes" description="Strip quote parameter in edit link" execution_order="10" enabled="1" action="str_replace">
+      <find><![CDATA[<a href="{xen:link threads/reply, $thread, 'quote={$post.post_id}'}" data-postUrl="{xen:link posts/quote, $post}" class="ReplyQuote item control reply" title="{xen:phrase reply_quoting_this_message}"><span></span>{xen:phrase reply}</a>]]></find>
+      <replace><![CDATA[<a href="<xen:if is="{$xenOptions.quoteme_disable_default_quotes}">{xen:link threads/reply, $thread}<xen:else />{xen:link threads/reply, $thread, 'quote={$post.post_id}'}</xen:if>" data-postUrl="{xen:link posts/quote, $post}" class="ReplyQuote item control reply" title="{xen:phrase reply_quoting_this_message}"><span></span>{xen:phrase reply}</a>]]></replace>
+    </modification>
     <modification template="thread_view" modification_key="quoteme_menu" description="Add quoteme menu" execution_order="10" enabled="1" action="preg_replace">
       <find><![CDATA[#SelectionCountContainer[^"]*?"[^>]*?>#ui]]></find>
       <replace><![CDATA[$0 
@@ -227,6 +240,10 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
     <modification title="QuoteME" template_title="message" execute_order="10" modification_type="preg_replace" callback_class="" callback_method="" description="Add meta &quot;author-id&quot;" version_id="1" version_string="1.1" active="1">
       <search_value><![CDATA[#data-author=".+?"#]]></search_value>
       <replace_value><![CDATA[$0 data-author-id="{$message.user_id}"]]></replace_value>
+    </modification>
+    <modification title="quoteme_disable_default_quotes" template_title="post" execute_order="10" modification_type="str_replace" callback_class="" callback_method="" description="Strip quote parameter in edit link" version_id="14" version_string="1.8.1" active="1">
+      <search_value><![CDATA[<a href="{xen:link threads/reply, $thread, 'quote={$post.post_id}'}" data-postUrl="{xen:link posts/quote, $post}" class="ReplyQuote item control reply" title="{xen:phrase reply_quoting_this_message}"><span></span>{xen:phrase reply}</a>]]></search_value>
+      <replace_value><![CDATA[<a href="<xen:if is="{$xenOptions.quoteme_disable_default_quotes}">{xen:link threads/reply, $thread}<xen:else />{xen:link threads/reply, $thread, 'quote={$post.post_id}'}</xen:if>" data-postUrl="{xen:link posts/quote, $post}" class="ReplyQuote item control reply" title="{xen:phrase reply_quoting_this_message}"><span></span>{xen:phrase reply}</a>]]></replace_value>
     </modification>
     <modification title="quoteMe_menu" template_title="thread_view" execute_order="10" modification_type="preg_replace" callback_class="" callback_method="" description="QuoteME menu" version_id="6" version_string="1.5" active="1">
       <search_value><![CDATA[#SelectionCountContainer[^"]*?"[^>]*?>#ui]]></search_value>
