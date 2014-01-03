@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="quoteME" title="QuoteME !" version_string="1.8.1" version_id="14" url="http://xenforo.com/community/resources/quoteme.1078/" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+<addon addon_id="quoteME" title="QuoteME !" version_string="2.0.0" version_id="15" url="http://xenforo.com/community/resources/quoteme.1078/" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -53,6 +53,12 @@
       <sub_options></sub_options>
       <relation group_id="sedo_quoteme" display_order="999"/>
     </option>
+    <option option_id="quoteme_debug_mobileoff" edit_format="onoff" data_type="boolean" can_backup="1">
+      <default_value>0</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="sedo_quoteme" display_order="998"/>
+    </option>
     <option option_id="quoteme_htmlmode_parseme" edit_format="select" data_type="boolean" can_backup="1">
       <default_value>0</default_value>
       <edit_format_params>0={xen:phrase quotemehtml_bbcode}
@@ -84,9 +90,15 @@ QmHtmlWrap={xen:phrase QuoteMe_Options_Html_Wrap}</edit_format_params>
     <phrase title="option_group_sedo_quoteme" version_id="0" version_string="1.0"><![CDATA[QuoteME!]]></phrase>
     <phrase title="option_group_sedo_quoteme_description" version_id="0" version_string="1.0"><![CDATA[QuoteME! options]]></phrase>
     <phrase title="option_quoteme_activation" version_id="6" version_string="1.5"><![CDATA[QuoteME Activation]]></phrase>
-    <phrase title="option_quoteme_activation_explain" version_id="6" version_string="1.5"><![CDATA[How QuoteME shoud be activated? If you choose "<b>Direct</b>", as soon as the user will have selected a text, the quoteMe box will appear whereas if you choose "<b>After click</b>", this box will only appear after the user has clicked on a "Fast Quotes" trigger located above the thread.]]></phrase>
+    <phrase title="option_quoteme_activation_explain" version_id="13" version_string="1.8.0"><![CDATA[How QuoteME shoud be activated?<br />
+<br />
+If you choose "<b>Direct</b>", as soon as the user will have selected a text, the quoteMe box will appear whereas if you choose "<b>After click</b>", this box will only appear after the user has clicked on a "Fast Quotes" trigger located above the thread.<br />
+<br />
+To avoid any problems, on touch screen devices, the "after click" mode is automatically activated. If you want the same behaviour on mobile devices which don't have a touch screen, you have to install the "<a href="http://xenforo.com/community/resources/1098/" target="_blank">Browser Detection</a>".]]></phrase>
     <phrase title="option_quoteme_debug_js_src" version_id="6" version_string="1.5"><![CDATA[[Debug] Development mode]]></phrase>
     <phrase title="option_quoteme_debug_js_src_explain" version_id="6" version_string="1.5"><![CDATA[This will use the unminified Javascript files.]]></phrase>
+    <phrase title="option_quoteme_debug_mobileoff" version_id="13" version_string="1.8.0"><![CDATA[[Debug] Disable on mobile devices]]></phrase>
+    <phrase title="option_quoteme_debug_mobileoff_explain" version_id="13" version_string="1.8.0"><![CDATA[This option will disable this addon on mobile devices.]]></phrase>
     <phrase title="option_quoteme_htmlmode_parseme" version_id="3" version_string="1.2"><![CDATA[Html mode output]]></phrase>
     <phrase title="option_quoteme_htmlmode_parseme_explain" version_id="3" version_string="1.2"><![CDATA[Do you want to insert highlighted text inside Editor with Bb Codes or with Clean Parsed Html? Default value: <b>Bb Codes</b>.]]></phrase>
     <phrase title="option_quoteme_mode" version_id="0" version_string="1.0"><![CDATA[QuoteME! Mode]]></phrase>
@@ -142,7 +154,7 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
     </route_type>
   </route_prefixes>
   <style_properties>
-    <property property_name="QuoteMeContainer" property_type="css" definition="1" group_name="QuoteMe" title="QuoteMe Container" description="" css_components="text,background,border,layout,extra" scalar_type="" scalar_parameters="" display_order="1" sub_group=""><![CDATA[{"background-color":"@secondaryLighter","border-color":"@secondaryLight","border-radius":"10px","border-style":"solid","border-width":"1px","color":"@contentText","font-size":"9pt","margin-all":"0","padding-all":"4px"}]]></property>
+    <property property_name="QuoteMeContainer" property_type="css" definition="1" group_name="QuoteMe" title="QuoteMe Container" description="" css_components="text,background,border,layout,extra" scalar_type="" scalar_parameters="" display_order="1" sub_group=""><![CDATA[{"background-color":"@secondaryLighter","border-color":"@secondaryLight","border-radius":"10px","border-style":"solid","border-width":"1px","color":"@contentText","extra":"z-index: 900;","font-size":"9pt","margin-all":"0","padding-all":"4px"}]]></property>
     <property property_name="quoteme_position" property_type="scalar" definition="1" group_name="QuoteMe" title="Positioning methods" description="" css_components="" scalar_type="template" scalar_parameters="style_property_unit_quoteme" display_order="30" sub_group=""><![CDATA[absfix]]></property>
     <property property_name="quoteme_activation_off" property_type="css" definition="1" group_name="QuoteMe" title="QuoteME Activation - Off" description="" css_components="text" scalar_type="" scalar_parameters="" display_order="10" sub_group=""><![CDATA[{"color":"@faintTextColor"}]]></property>
     <property property_name="quoteme_activation_on" property_type="css" definition="1" group_name="QuoteMe" title="QuoteME Activation - On" description="" css_components="text" scalar_type="" scalar_parameters="" display_order="40" sub_group=""><![CDATA[{"color":"rgb(89, 219, 57)"}]]></property>
@@ -177,20 +189,41 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
 >{xen:phrase quoteme}</div>
 
 <div class="quotemetrigger"><a id="QuoteMeTrigger" href="javascript:">{xen:phrase sedo_quoteme_getquotes} (<span id="QuoteMeEl"></span>)</a></div>]]></template>
-    <template title="quoteME.css" version_id="6" version_string="1.5"><![CDATA[.quote_me{
+    <template title="quoteME.css" version_id="13" version_string="1.8.0"><![CDATA[.quote_me{
 	{xen:property QuoteMeContainer}
 	display:none;
 	position:absolute;
 	cursor: pointer;
 }
 
+.quote_me.touch{
+	position: fixed;
+	left: 50%;
+	bottom: 0;
+	width: 110%;
+	margin-left: -55%;
+	text-align: center;
+	padding: 12px 0;
+}
+
 .quotemetrigger{
 	display:none;
 	font-size: 11px;
-}
+}]]></template>
+    <template title="quoteME_menu" version_id="13" version_string="1.8.0"><![CDATA[<xen:require css="quoteME_menu.css" />
 
-#toggleMeMenu{
-	float:right;
+<a 	id="toggleMeMenu" 
+	class="Tooltip off" 
+	style="display:none" 
+	href="javascript:" 
+	title="{xen:phrase sedo_quoteme_fastquotes_click_to_activate}"
+	data-off="{xen:phrase sedo_quoteme_fastquotes_click_to_disable}"
+	data-trans="{$xenOptions.quoteme_transpage_mode}"
+	data-show="{xen:if '{$xenOptions.quoteme_activation}', '1', '{$visitor.getBrowser.isMobile}'}"
+>{xen:phrase sedo_quoteme_fastquotes_menu}</a>]]></template>
+    <template title="quoteME_menu.css" version_id="13" version_string="1.8.0"><![CDATA[#toggleMeMenu{
+	display: none;
+	float: right;
 }
 
 #toggleMeMenu.off{
@@ -200,16 +233,6 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
 #toggleMeMenu.on{
 	{xen:property quoteme_activation_on}
 }]]></template>
-    <template title="quoteME_menu" version_id="6" version_string="1.5"><![CDATA[<xen:if is="{$xenOptions.quoteme_activation}">
-	<a 	id="toggleMeMenu" 
-		class="Tooltip off" 
-		style="display:none" 
-		href="javascript:" 
-		title="{xen:phrase sedo_quoteme_fastquotes_click_to_activate}"
-		data-off="{xen:phrase sedo_quoteme_fastquotes_click_to_disable}"
-		data-trans="{$xenOptions.quoteme_transpage_mode}"
-	>{xen:phrase sedo_quoteme_fastquotes_menu}</a>
-</xen:if>]]></template>
   </templates>
   <public_template_modifications>
     <modification template="message" modification_key="quoteme_author_id" description="Easy way to get get the author id" execution_order="10" enabled="1" action="preg_replace">

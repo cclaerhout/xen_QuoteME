@@ -1,7 +1,7 @@
-/*QuoteME (1.8.1) by Cédric CLAERHOUT - Licence: CC by*/
-if(typeof Sedo == 'undefined') var Sedo = {};
+/*QuoteME (2.0.0) by Cédric CLAERHOUT - Licence: CC by*/
+if(typeof Sedo === 'undefined') var Sedo = {};
 
-!function($, window, document, _undefined)
+!function($, window, document, undefined)
 {    
 	Sedo.QuoteME = 
 	{
@@ -20,116 +20,224 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		srcType: 'txt',
 		init: function($element)
 		{
-			var t = Sedo.QuoteME;
-			$QM = $(t.QM);
+			var self = Sedo.QuoteME, $QM = $(self.QM),
+				pressDown = $.proxy(self, '_initPressDown'),
+				pressUp = $.proxy(self, '_initPressUp'),
+				qmClick = $.proxy(self, '_initQmClick');
 
-			/***
-				Hide QuoteME
-			*/
-			$('body:not('+t.QM+')').unbind('mousedown').bind('mousedown', function(e) {
-				if(!t.isOn)
-					return;
-
-				//Check if there is already some selected text (after a right click)
-				t.getSelectedText();
-				
-				if(t.SelectedText && e.which == 1)
-					t.unSelect(); //If there is => unselect
-	
-				//Need to use the element to check if click element is QuoteMe div box
-				if (e.target.id == 'QuoteMe')
-					return;
-	
-				if($QM.is(":visible") && e.which == 1) { //left click
-					t.unSelect();
-					$QM.hide();
-					return;
-				}
-				
-				if(e.which != 1) { //other clicks
-					$QM.hide();
-					return;					
-				}
-			});
-	
-			/***
-				Display QuoteME
-			*/
-			$element.not(t.QM).unbind('mouseup').bind('mouseup', function(e) 
-			{
-				if(!t.isOn)
-					return;
-					
-				if($QM.is(":hidden") && e.which == 1) { //left click
-					var CheckCb = t.config(this);
-	
-					if(CheckCb === false) {
-						$QM.hide();
-						return;
-					}
-	
-					var ModePos = $QM.data('pos');
-					
-					if(ModePos == 'absfix'){
-						var pos = $(e.target).parents('.messageContent').position(),
-						off = $(e.target).parents('.messageContent').offset();
-						
-						if(off == null || pos == null)
-							return;
-						
-						var top = Math.round(e.pageY - (off.top - pos.top))+1 + 'px', // the incrementation of 1 is to solve the Bug of year on old versions of IE
-						left = e.pageX + 'px';
-	
-						$QM.show().css({'position':'absolute', 'left':left, 'top':top}); 							
-					} else if(ModePos == 'abs') {
-						$QM.show().css({'position':'absolute', 'left':e.pageX+1+'px','top':e.pageY+1+'px'});
-					} else {
-						$QM.show().css({'position':'fixed', 'left':e.clientX+1+'px','top':e.clientY+1+'px'});
-					}
-	
-					return;
-				}
-	
-				if(e.which != 1) //other clicks
-					return;
-			});
+			self.$element = $element;
+			self.addEventSupport = (document.addEventListener != undefined);
 			
 			/***
-				Execute QuoteME
-			*/
-			$QM.unbind('click').bind('click', function(e)
-	       	  	{
-				if (t.SelectedMode == 'txt') {
-					t.execute(t.SelectedText);
-				} else{
-					if(t.SelectedText){
-						XenForo.ajax(
-							'index.php?quoteme/to-tiny',
-							{ htmlraw:t.SelectedText },
-							t.rawHtml2cleanHtml
-						);
-					}
-				}
-	
+			 * Hide QuoteME + Get selection
+			 **/
+			self.eventTypeDown = null;
+			var downEvents = 'touchstart mousedown';
+			$('body:not('+self.QM+')').unbind(downEvents, pressDown).bind(downEvents, pressDown);
+
+			/***
+			 * Display QuoteME
+			 **/
+			self.eventTypeUp = null;
+			var upEvents ='qm_ready mouseup';
+			$element.not(self.QM).unbind(upEvents, pressUp).bind(upEvents, pressUp);
+			
+			/***
+			 * Execute QuoteME
+			 **/
+			$QM.unbind('touchstart click', qmClick).bind('touchstart click', qmClick);
+		},
+		_initPressDown: function(e)
+		{
+			var self = this, $QM = $(self.QM), 
+				isMousedown = (e.type == 'mousedown'),
+				isMousedownLeftClick = (isMousedown && e.which == 1),
+				isMousedownOtherClick = (isMousedown && e.which != 1);
+
+			/* Prevent the two events to be executed at the same time */
+			if(self.eventTypeDown != undefined && self.eventTypeDown != e.type){
+				return;
+			}
+
+			self.eventTypeDown = e.type;
+
+			if(!self.isOn)
+				return;
+
+			/* Check if there is already some selected text (after a right click) */
+			self.getSelectedText();
+
+			if(self.SelectedText && (isMousedownLeftClick || !isMousedown) )
+				self.unSelect(); //If there is => unselect
+
+			/* Need to use the element to check if click element is QuoteMe div box */
+			if (e.target.id == 'QuoteMe')
+				return;
+
+			if($QM.is(":visible") && (isMousedownLeftClick || !isMousedown) ) {
+				self.unSelect();
 				$QM.hide();
 				return;
-			});
+			}
+				
+			if(isMousedownOtherClick) {
+				$QM.hide();
+				return;					
+			}			
+
+			/* Touch management */
+			if(!isMousedown && self.addEventSupport){
+				self._moveReset();
+				document.addEventListener('touchmove', self._moveRec, false);
+				document.addEventListener('selectionchange', self._touchSelec, false);
+			}
+		},
+		_initPressUp: function(e)
+		{
+			var self = this, $QM = $(self.QM),
+				isMouseup = (e.type == 'mouseup'),
+				isMouseupLeftClick = (isMouseup && e.which == 1),
+				isMouseupOtherClick = (isMouseup && e.which != 1),
+				modePos = $QM.data('pos');
+
+			//Prevent the two events to be executed at the same time
+			if(self.eventTypeUp != undefined && self.eventTypeUp != e.type){
+				return;
+			}
+					
+			self.eventTypeUp = e.type;
+
+      			if(!self.isOn)
+      				return;
+
+			//Touch management
+			if(!isMouseup && self.addEventSupport){
+				var selectionHasChanged = self.selectionHasChanged,
+					lastMove = self.lastMove,
+					touch = 'touch';
+
+				if(lastMove && lastMove.changedTouches != undefined){
+					/**
+					 * Too difficult to deal with touch position on touch device
+					 * Let's use another mode (will require recent OS that support fixed position)
+					 **/
+					//e = lastMove.changedTouches[0];
+					
+					modePos = touch;
+				}
+
+				//self._moveReset(true);//Not sure if useful
+
+				if(!selectionHasChanged || self.SelectedText == undefined){
+					$QM.hide();
+					return;
+				};
+			}
+      				
+      			if($QM.is(":hidden") && (isMouseupLeftClick || !isMouseup) ) {
+      				var CheckCb = self.config(e.currentTarget); //We're in a proxy, do not use 'this' 
+
+      				if(CheckCb === false) {
+      					$QM.hide();
+      					return;
+      				}
+
+     				if(modePos == 'absfix'){
+      					var pos = $(e.target).parents('.messageContent').position(),
+      					off = $(e.target).parents('.messageContent').offset();
+      					
+      					if(off == null || pos == null){
+      						modePos = 'fb';
+      					}else {
+	      					var top = Math.round(e.pageY - (off.top - pos.top))+1 + 'px', // the incrementation of 1 is to solve the Bug of year on old versions of IE
+      							left = e.pageX + 'px';
+      
+      						$QM.show().css({'position':'absolute', 'left':left, 'top':top});
+      						return;
+      					}							
+      				}
+
+      				if(modePos == 'abs') {
+      					$QM.css({'position':'absolute', 'left':e.pageX+1+'px','top':e.pageY+1+'px'});
+      				} else if(modePos == touch) {
+      					$QM.addClass(touch);
+      				} else {
+      					$QM.css({'position':'fixed', 'left':e.clientX+1+'px','top':e.clientY+1+'px'});
+      				}
+
+				$QM.show();
+      				return;
+      			}
+      
+			if(isMouseupOtherClick) {
+				return;					
+			}
+		},
+		_initQmClick: function(e)
+		{
+			e.preventDefault();//needed for fixed position if an element is below
+			
+			var self = this, $QM = $(self.QM);
+
+			if (self.SelectedMode == 'txt') {
+				self.execute(self.SelectedText);
+			} else{
+				if(self.SelectedText){
+					XenForo.ajax(
+						'index.php?quoteme/to-tiny',
+						{ htmlraw:self.SelectedText },
+						$.proxy(self, 'rawHtml2cleanHtml')
+					);
+				}
+			}
+	
+			$QM.hide();
+			return;
+		},
+		_touchSelec: function(e)
+		{
+			var self = Sedo.QuoteME, $QM = $(self.QM);
+			
+			$QM.hide();
+	
+			self.getSelection();
+
+			if(self.SelectedText && self.SelectedText.length > 1){
+				self.selectionHasChanged = true;
+				self.$element.trigger('qm_ready');
+			}
+		},
+		_moveRec: function(e)
+		{
+			//http://stackoverflow.com/questions/9251590/how-to-handle-touch-events-in-ios-and-android
+			var self = Sedo.QuoteME;
+			self.lastMove = e;
+		},
+		_moveReset: function(removeEvent)
+		{
+			var self = this;
+			
+			if(removeEvent == true){
+				document.removeEventListener('touchmove', self._moveRec, false);
+				document.removeEventListener('selectionchange', self._touchSelec ,false);			
+				self.lastMove = null;
+			}
+			
+			self.selectionHasChanged = false;
 		},
 		getParams: function()
 		{
-			$editor = $('#'+this.editorID);
-
-			var t = this,
-			redactor = $editor.data('redactor');
+			var self = this,
+				$editor = $('#'+self.editorID),
+				redactor = $editor.data('redactor');
 
 			/*Editor datas*/
-			
 			if (typeof tinyMCE !== 'undefined') {
 				this.isTinyMCE = true;
 				this.isRte = true;
 			}
 			
-			if (typeof redactor !== 'undefined' && redactor !== null) {
+			if (redactor !== undefined && redactor !== null) {
 				this.isRedactor = true;
 				this.redactor = redactor;
 				this.isRte = true;
@@ -148,194 +256,208 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				$bbcodeEditor = $('.bbCodeEditorContainer');
 				
 				if( $bbcodeEditor.length != 0 )
-					t.editor = 'rteBB';
+					self.editor = 'rteBB';
 				else
-					t.editor = 'rteFull';
+					self.editor = 'rteFull';
       			}
       			
 			/*Selection Mode*/
-      			$QM = $(t.QM); 
-			t.Mode = $QM.data('mode');
+      			var $QM = $(self.QM); 
+			self.Mode = $QM.data('mode');
 
 			/*Html Mode*/
-			t.HtmlMode = 0;
-			if( t.Mode != 'QmText'){
-				t.HtmlMode = parseInt($QM.data('html'));
+			self.HtmlMode = 0;
+			if( self.Mode != 'QmText'){
+				self.HtmlMode = parseInt($QM.data('html'));
 			}
 			
 			/*Trans Mode*/	
-			t.isTrans = (parseInt($QM.data('trans'))) ? true : false;
+			self.isTrans = (parseInt($QM.data('trans'))) ? true : false;
       			
 		},
 		config: function(this_button)
 		{
 			//Init is done after mouseup event on .messageContent
-			var t = this;
+			var self = this;
 			
 			//Prepare key coponents
-			t.getParams();
+			self.getParams();
 			
-			switch (t.Mode) {
+			switch (self.Mode) {
 				case 'QmText': 
 					//The Mode must be setup first!!!
-					t.Mode = 'txt';
-					t.checkHtml = false;
+					self.Mode = 'txt';
+					self.checkHtml = false;
 					break;
 				case 'QmHtml': 
-					t.Mode = 'html';
-					t.checkHtml = true;
+					self.Mode = 'html';
+					self.checkHtml = true;
 					
 					break;
 				default : 
-					t.Mode = 'htmlwrap';
-					t.checkHtml = true;
+					self.Mode = 'htmlwrap';
+					self.checkHtml = true;
 					break;
 			}
 
-			if(t.checkHtml === true && t.editorType == 'rteFull'){
-				t.SelectedMode = 'html';
-				t.SelectedText = t.getSelectedTextHtml();
-			} else{
-				t.SelectedMode = 'txt';
-				t.SelectedText = t.getSelectedText();
-			}
+			self.getSelection();
+			
 			//Check if selection (text-mode) is empty
-			if(!t.SelectedText)
+			if(!self.SelectedText)
 				return false;
 	
 			//Check if selection (html-mode) is empty or if the content has a <embed> tag => disable flash
-			if ( t.Mode != 'txt' && t.SelectedText.match(/<(\w+)(?:[^>]+?)?><\/\1>|<embed[^>]+?>/i) )
+			if ( self.Mode != 'txt' && self.SelectedText.match(/<(\w+)(?:[^>]+?)?><\/\1>|<embed[^>]+?>/i) )
 				return false;
 			
 			//Get Author & MessageID 
-			t.Author = $(this_button).parents('.message').data('author');
-			t.MessageID = $(this_button).parents('.message').attr('id');
+			var $targetParent =  $(this_button).parents('.message');
+			
+			self.Author = $targetParent.data('author');
+			self.MessageID = $targetParent.attr('id');
 			
 			//Get AuthorID (Message template must have been modified)
-			t.AuthorID = $(this_button).parents('.message').attr('data-author-id');
+			self.AuthorID = $targetParent.attr('data-author-id');
 	
-			if(t.AuthorID)
-				t.AuthorID = ', member: '+t.AuthorID;
+			if(self.AuthorID)
+				self.AuthorID = ', member: '+self.AuthorID;
 			else
-				t.AuthorID = '';
+				self.AuthorID = '';
 			
 			//Are we in messages or conversations?
-			if ( t.MessageID.match(/post-/i) ) { //We are in messages
-				t.MessageType = 'post';
-				t.MessageID = t.MessageID.replace(/post-/i, '');
-			} else if ( t.MessageID.match(/message-/i) ) { //We are in conversation
-				t.MessageType = 'convMessage';
-				t.MessageID = t.MessageID.replace(/message-/i, '');
+			if (self.MessageID == undefined){
+				self.MessageType = '';
+				self.MessageID = '';
+			} else if( self.MessageID.match(/post-/i) ) { //We are in messages
+				self.MessageType = 'post';
+				self.MessageID = self.MessageID.replace(/post-/i, '');
+			} else if ( self.MessageID.match(/message-/i) ) { //We are in conversation
+				self.MessageType = 'convMessage';
+				self.MessageID = self.MessageID.replace(/message-/i, '');
+			}
+			
+			return true;
+		},
+		getSelection: function()
+		{
+			var self = this;
+			
+			if(self.checkHtml === true && self.editorType == 'rteFull'){
+				self.SelectedMode = 'html';
+				self.SelectedText = self.getSelectedTextHtml();
+			} else{
+				self.SelectedMode = 'txt';
+				self.SelectedText = self.getSelectedText();
 			}
 		},
 		execute: function(SelectedText)
 		{
-			var t = Sedo.QuoteME;
+			var self = this;
 						
 			//Avoid extra breaklines if clean parsed html is activated)
-			if(t.HtmlMode == 1)
+			if(self.HtmlMode == 1)
 				SelectedText = SelectedText.replace(/^<p>([\s\S]+)<\/p>$/i, '$1');
 			
 			//Format quotation
-			if(t.Author && t.MessageID && t.MessageType)
-				SelectedText = '[quote="'+t.Author+', '+t.MessageType+': '+t.MessageID+t.AuthorID+'"]' + SelectedText + '[/quote]';
+			if(self.Author && self.MessageID && self.MessageType)
+				SelectedText = '[quote="'+self.Author+', '+self.MessageType+': '+self.MessageID+self.AuthorID+'"]' + SelectedText + '[/quote]';
 			else
 				SelectedText = '[quote]' + SelectedText + '[/quote]';
 	      
 			//Put in global variable
-			t.SelectedText = SelectedText;
+			self.SelectedText = SelectedText;
 			
 			//To which editor should it be sent ?
-			if(t.isTrans){
-				t.transMode();
+			if(self.isTrans){
+				self.transMode();
 			}else{
-				t.prepareSel();
-				t.edDispatcher();
+				self.prepareSel();
+				self.edDispatcher();
 			}
 		},
 		edDispatcher: function()
 		{
-			var t = this;
-			console.info('Editor mode: '+t.editorType+', Text mode: '+t.Mode);
-			switch (t.editorType) {
+			var self = this;
+			console.info('Editor mode: '+self.editorType+', Text mode: '+self.Mode);
+			switch (self.editorType) {
 				case 'rteBB':
-					t.RTE_BBcodeEditor();
+					self.RTE_BBcodeEditor();
 				break;
 				case 'rteFull':
-					t.RTE_Wysiwyg();
+					self.RTE_Wysiwyg();
 				break;
 				case 'notRte':
-					t.notRTE_BBcodeEditor();
+					self.notRTE_BBcodeEditor();
 				break;
 			}		
 		},
 		transMode: function()
 		{
 			/* Send object to Memory */
-			var t = this,
-			objQM = t.getObjQM(),
-			data = t.SelectedText,
-			i = 1,
-			mode = (t.editorType == 'rteFull') ? 'html' : 'txt';
+			var self = this,
+				objQM = self.getObjQM(),
+				data = self.SelectedText,
+				i = 1,
+				mode = (self.editorType == 'rteFull') ? 'html' : 'txt';
 			
 			if(!objQM){
 				var objQM = {};
 			} else {
-				i = t.getObjIdx(objQM);
+				i = self.getObjIdx(objQM);
 			}
 
 			objQM[i] = {
 				data: data,
-				type: t.srcType
+				type: self.srcType
 			};
 
-			t.setObjQM(objQM);
+			self.setObjQM(objQM);
 
-			$(t.QMT).parent().show();
-			$(t.QME).text(i);
+			$(self.QMT).parent().show();
+			$(self.QME).text(i);
 		},
 		transAction:function()
 		{
 			/* Once Get Quotes Trigger called */
-			var t = this;
-			t.getParams();
+			var self = this;
+			self.getParams();
 			
-			var objQM = t.getObjQM(),
+			var objQM = self.getObjQM(),
 			text = '';
 
 			if(!objQM) return;
 			
 			$.each( objQM, function(k, v) {
-				t.SelectedText = v.data; 
-				t.prepareSel(v.type);
-				text += t.SelectedText;
+				self.SelectedText = v.data; 
+				self.prepareSel(v.type);
+				text += self.SelectedText;
 			});
 
-			t.SelectedText = text;
-			t.edDispatcher();
+			self.SelectedText = text;
+			self.edDispatcher();
 			
-			$(t.QMT).parent().hide();
-			t.killObjQM();
+			$(self.QMT).parent().hide();
+			self.killObjQM();
 		},
 		prepareSel: function(chk)
 		{
-			var src = this, selText = src.SelectedText, mode = src.srcType, breakOpen, breakEnd, hasContent;
+			var self = this, selText = self.SelectedText, mode = self.srcType, breakOpen, breakEnd, hasContent;
 			
-			if(typeof chk === 'undefined')
+			if(chk === undefined)
 				chk = mode; // if the chk is undefined it means transpage is not activated, let's copy mode to chk then
 			
 			/*Bb Code Editor*/		
 				if(mode == 'txt'){
 					if(chk != 'txt'){ //The active editor is a BbCode editor but the text has been saved with the html format
 						selText = selText.replace(/<[^>]+>/ig,'');	 //=> strip tags
-						selText = src.unescapeHtml(selText); 			//=> unescape tinyMce escaped html
+						selText = self.unescapeHtml(selText); 			//=> unescape tinyMce escaped html
 					}
 
-					$editor = src.getBbCodeEditor();
+					$editor = self.getBbCodeEditor();
 					hasContent = $editor.val();
 					breakOpen = (hasContent) ? '\r\n' : '';
 
-					src.SelectedText = breakOpen + selText + '\r\n';
+					self.SelectedText = breakOpen + selText + '\r\n';
 					return;
 				}
 
@@ -362,15 +484,15 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				if(!hasContent)
 					breakOpen = '';
 	
-				if(src.HtmlMode == 0 && chk == 'html'){//Src Mode: text || Output Mode: Html (wysiwyg Editor)
-					selText = src.escapeHtml(selText);
+				if(self.HtmlMode == 0 && chk == 'html'){//Src Mode: text || Output Mode: Html (wysiwyg Editor)
+					selText = self.escapeHtml(selText);
 				}
 	
 				if(chk != 'html'){ //The active editor is RTE but the text has been saved with the text format
-					selText = src.escapeHtml(selText);
+					selText = self.escapeHtml(selText);
 				}
 	
-				src.SelectedText = breakOpen+'<p>'+selText+'</p>'+breakEnd;
+				self.SelectedText = breakOpen+'<p>'+selText+'</p>'+breakEnd;
 		},
 		notRTE_BBcodeEditor: function()
 		{
@@ -384,11 +506,11 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		RTE_Wysiwyg: function()		
 		{
-			var src = this, 
-				editorID = src.editorID,
-				selectedText = src.SelectedText;
+			var self = this, 
+				editorID = self.editorID,
+				selectedText = self.SelectedText;
 				
-			if(src.isTinyMCE){
+			if(self.isTinyMCE){
 				if(tinyMCE.majorVersion > 3){
 					var args = {
 						skip_focus: true
@@ -398,13 +520,13 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 				}else{
 					tinyMCE.getInstanceById(editorID).execCommand('mceInsertContent', false, selectedText);
 				}
-			}else if(src.isRedactor){
-				src.redactor.insertHtml(selectedText);//bug on IE (the last quote is preprend instead of being append to the content
+			}else if(self.isRedactor){
+				self.redactor.insertHtml(selectedText);//bug on IE (the last quote is preprend instead of being append to the content
 			}
 		},
 		getBbCodeEditor: function(manual)
 		{
-			var src = this, edType = (manual || src.editorType);
+			var self = this, edType = (manual || self.editorType);
 			
 			switch (edType) {
 				case 'rteBB': return $('.bbCodeEditorContainer').find('textarea.textCtrl');
@@ -434,10 +556,10 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		getSelectedTextHtml: function()		
 		{		
-			var t = this;
+			var self = this;
 
 			//Src: http://stackoverflow.com/questions/5222814/window-getselection-return-html
-			if (typeof window.getSelection != 'undefined'){
+			if (window.getSelection != undefined){
 				var sel;
 				sel = window.getSelection();
 	
@@ -449,7 +571,7 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 						container.appendChild(sel.getRangeAt(i).cloneContents());
 	          			}
 	
-					if(t.Mode == 'htmlwrap' && sel.anchorNode.parentNode.outerHTML) {
+					if(self.Mode == 'htmlwrap' && sel.anchorNode.parentNode.outerHTML) {
 						//Fix to try to get the above element styling (bold, italic, etc.)
 						//Tested on Firefox (last version), Opera, IE9
 						var parent = sel.anchorNode.parentNode.parentElement.outerHTML.replace(/(^<[^>]+?>)([\s\S]+)(<[^>]+?>$)/, '$1{target}$3');
@@ -459,10 +581,10 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 					return container.innerHTML
 				}
 			}
-			else if (typeof document.selection != "undefined"){
+			else if (document.selection != undefined){
 				// IE < 9
 				if (document.selection.type == "Text") {
-					if(t.Mode == 'htmlwrap' && document.selection.createRange().parentElement().outerHTML )	{
+					if(self.Mode == 'htmlwrap' && document.selection.createRange().parentElement().outerHTML )	{
 						//Fix to try to get the above element styling (bold, italic, etc.) || Regex is different than above cause it wasn't working with start (^) and end ($) anchors 
 						//Tested on IE7 & IE8
 						var parent = document.selection.createRange().parentElement().outerHTML.replace(/(<[^>]+?>)([\s\S]+)(<[^>]+?>)/, '$1{target}$3');
@@ -475,8 +597,8 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		rawHtml2cleanHtml: function(ajaxdata)
 		{
-			Sedo.QuoteME.execute(ajaxdata.tinyCode);
-			return false;
+			this.execute(ajaxdata.tinyCode);
+			return;
 		},
 		unescapeHtml: function(string, options) 
 		{
@@ -524,30 +646,39 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},	
 		menuInit: function($e)
 		{
-			var t = Sedo.QuoteME, txt; 
-			t.menuOn = $e.data('title');
-			t.menuOff = $e.data('off');
-			t.isOn = false;
+			var self = Sedo.QuoteME, txt,
+				onText = $e.data('title'),
+				offText = $e.data('off');
+			
+			if($e.data('show') || XenForo.isTouchBrowser()){
+				self.isOn = false;
+			}else{
+				return;
+			}
 
-			$e.show()
-			.click(function(e){
+			$e.show().click(function(e){
 				e.preventDefault();
 				if($e.hasClass('off')){
 					$e.removeClass('off').addClass('on');
-					t.isOn = true;
+					self.isOn = true;
 				}else{
 					$e.removeClass('on').addClass('off');
-					t.isOn = false;
+					self.isOn = false;
 				}
-			})			
-			.data('tooltip').onBeforeShow(function(e){
-				if($e.hasClass('off'))
-					txt = t.menuOn;
-				else
-					txt = t.menuOff;
-					
-				this.getTip().text(txt);
 			});
+			
+			var tooltip = $e.data('tooltip');
+			
+			if(tooltip !== undefined){
+				tooltip.onBeforeShow(function(e){
+					if($e.hasClass('off'))
+						txt = onText;
+					else
+						txt = offText;
+					
+					this.getTip().text(txt);
+				});
+			}
 		},
 		getObjQM: function(){
 			return $.jStorage.get('quoteme', false);
@@ -565,34 +696,38 @@ if(typeof Sedo == 'undefined') var Sedo = {};
 		},
 		transTrigger:function($e)
 		{
-			var t = Sedo.QuoteME;
+			var self = Sedo.QuoteME;
 
-			$QM = $(t.QM); 
-			t.isTrans = (parseInt($QM.data('trans'))) ? true : false;
+			$QM = $(self.QM); 
+			self.isTrans = (parseInt($QM.data('trans')));
 			
-			if(!t.isTrans) return;
+			if(!self.isTrans) return;
 				
-			var objQM = t.getObjQM();
+			var objQM = self.getObjQM();
 			
 			if(objQM !== false){
 				$e.trigger('click');
-				var i = t.getObjIdx(objQM);
+				var i = self.getObjIdx(objQM);
 
 				$e.parent().show();
-				$(t.QME).text(i-1)
+				$(self.QME).text(i-1)
 			}
 				
 			$e.click(function(e){
 				e.preventDefault();
-				t.transAction();
+				self.transAction();
 			});		
 		}
 	}
 
-	if (!XenForo.isTouchBrowser()){
-		XenForo.register('#toggleMeMenu', 'Sedo.QuoteME.menuInit');
-		XenForo.register('#QuoteMeTrigger', 'Sedo.QuoteME.transTrigger');		
-		XenForo.register('.messageContent', 'Sedo.QuoteME.init');
+	function r(a,b){
+		XenForo.register(a, b);
 	}
+	var sedoQuoteME = 'Sedo.QuoteME';
+
+	r('#toggleMeMenu', sedoQuoteME+'.menuInit');
+	r('#QuoteMeTrigger', sedoQuoteME+'.transTrigger');		
+	r('.messageContent', sedoQuoteME+'.init');
+	r('.quoteMeContent', sedoQuoteME+'.init');
 }
 (jQuery, this, document);

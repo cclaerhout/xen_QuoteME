@@ -20,8 +20,7 @@ class Sedo_QuoteME_Listener_Templates
 					$isMobile =  XenForo_Visitor::isBrowsingWith('mobile');
 				}
 			
-				//Do not proceed if not mobile
-				if($isMobile)
+				if($isMobile && $options->quoteme_debug_mobileoff)
 				{
 					break;
 				}
