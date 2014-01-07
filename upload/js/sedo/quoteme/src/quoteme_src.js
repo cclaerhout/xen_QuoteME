@@ -1,4 +1,4 @@
-/*QuoteME (2.0.1 rev.A) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.1 rev.B) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -62,7 +62,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			}
 
 			self.eventTypeDown = e.type;
-
+			
 			if(!self.isOn)
 				return;
 
@@ -76,6 +76,18 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			if (e.target.id == 'QuoteMe')
 				return;
 
+			/* Touch management */
+			if(isTouchStart && self.addEventSupport){
+				/**
+				 * The addEventListener can't be activated on a single element.
+				 * It must be use with the document 
+				 **/
+				
+				self._moveReset();
+				self.lastTouch = e;
+				document.addEventListener('selectionchange', self._touchSelec, false);
+			}
+
 			if($QM.is(":visible") && (isMousedownLeftClick || isTouchStart) ) {
 				self.unSelect();
 				$QM.hide();
@@ -86,18 +98,6 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				$QM.hide();
 				return;					
 			}			
-
-			/* Touch management */
-			if(isTouchStart && self.addEventSupport){
-				/**
-				 * The addEventListener can't be activated on a single element.
-				 * It must be use with the document 
-				 **/
-				
-				self._moveReset();
-				document.addEventListener('touchmove', self._moveRec, false);
-				document.addEventListener('selectionchange', self._touchSelec, false);
-			}
 		},
 		_initPressUp: function(e)
 		{
@@ -121,26 +121,20 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			//Touch management
 			if(isQmReady && self.addEventSupport){
 				var selectionHasChanged = self.selectionHasChanged,
-					lastMove = self.lastMove,
+					lastTouch = self.lastTouch,
 					touch = 'touch';
 
 				/***
 				 * Since the addEventListener binds functions on the document,
 				 * we must check if we're inside the quoteme activation zone
 				 ***/
-				 if(!lastMove || lastMove.target == undefined)
+				 if(!lastTouch || lastTouch.target == undefined)
 				 	return;
 				
-				var isInsideMessageContent = $(lastMove.target).parents('.messageContent').length;
+				var isInsideMessageContent = $(lastTouch.target).parents('.messageContent').length;
 				
 				if(!isInsideMessageContent)
 					return;
-
-				/***
-				 * Too difficult to deal with touch position on touch device
-				 * Let's use another mode (will require recent OS that support fixed position)
-				 * if(lastMove.changedTouches != undefined){ e = lastMove.changedTouches[0]; }
-				 ***/
 
 				modePos = touch;
 
@@ -212,7 +206,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			$QM.hide();
 			return;
 		},
-		_touchSelec: function(e)
+		_touchSelec: function(e, b)
 		{
 			var self = Sedo.QuoteME, $QM = $(self.QM);
 			
@@ -225,12 +219,6 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				self.$element.trigger('qm_ready');
 			}
 		},
-		_moveRec: function(e)
-		{
-			//http://stackoverflow.com/questions/9251590/how-to-handle-touch-events-in-ios-and-android
-			var self = Sedo.QuoteME;
-			self.lastMove = e;
-		},
 		_moveReset: function(removeEvent)
 		{
 			var self = this;
@@ -238,7 +226,6 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			if(removeEvent == true){
 				document.removeEventListener('touchmove', self._moveRec, false);
 				document.removeEventListener('selectionchange', self._touchSelec ,false);			
-				self.lastMove = null;
 			}
 			
 			self.selectionHasChanged = false;
