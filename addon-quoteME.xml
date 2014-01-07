@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="quoteME" title="QuoteME !" version_string="2.0.0" version_id="15" url="http://xenforo.com/community/resources/quoteme.1078/" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+<addon addon_id="quoteME" title="QuoteME !" version_string="2.0.1" version_id="16" url="http://xenforo.com/community/resources/quoteme.1078/" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -31,6 +31,7 @@
   <admin_template_modifications/>
   <code_events/>
   <code_event_listeners>
+    <listener event_id="load_class_view" execute_order="10" callback_class="Sedo_QuoteME_Listener_MiscListeners" callback_method="extendViewPublicPostQuote" active="1" hint="XenForo_ViewPublic_Post_Quote" description="Extend ViewPublicPostQuote"/>
     <listener event_id="template_create" execute_order="10" callback_class="Sedo_QuoteME_Listener_PreloadTemplates" callback_method="template_preload" active="1" hint="" description="Preload templates"/>
     <listener event_id="template_post_render" execute_order="10" callback_class="Sedo_QuoteME_Listener_Templates" callback_method="postrender" active="1" hint="" description="Templates Post Render"/>
     <listener event_id="tinyquattro_extra_plugins" execute_order="10" callback_class="Sedo_QuoteME_Listener_TinyQuattroPlugin" callback_method="addExtraPlugin" active="1" hint="" description="MCE Extra Plugin"/>
@@ -58,6 +59,12 @@
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
       <relation group_id="sedo_quoteme" display_order="998"/>
+    </option>
+    <option option_id="quoteme_disable_default_quotes" edit_format="onoff" data_type="boolean" can_backup="1">
+      <default_value>0</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="sedo_quoteme" display_order="50"/>
     </option>
     <option option_id="quoteme_htmlmode_parseme" edit_format="select" data_type="boolean" can_backup="1">
       <default_value>0</default_value>
@@ -99,6 +106,8 @@ To avoid any problems, on touch screen devices, the "after click" mode is automa
     <phrase title="option_quoteme_debug_js_src_explain" version_id="6" version_string="1.5"><![CDATA[This will use the unminified Javascript files.]]></phrase>
     <phrase title="option_quoteme_debug_mobileoff" version_id="13" version_string="1.8.0"><![CDATA[[Debug] Disable on mobile devices]]></phrase>
     <phrase title="option_quoteme_debug_mobileoff_explain" version_id="13" version_string="1.8.0"><![CDATA[This option will disable this addon on mobile devices.]]></phrase>
+    <phrase title="option_quoteme_disable_default_quotes" version_id="15" version_string="2.0.0"><![CDATA[Disable default quotes]]></phrase>
+    <phrase title="option_quoteme_disable_default_quotes_explain" version_id="15" version_string="2.0.0"><![CDATA[This option will disable the default XenForo quote system. In other words, when the "reply" button is clicked, the editor will be focused without any quotes in it.]]></phrase>
     <phrase title="option_quoteme_htmlmode_parseme" version_id="3" version_string="1.2"><![CDATA[Html mode output]]></phrase>
     <phrase title="option_quoteme_htmlmode_parseme_explain" version_id="3" version_string="1.2"><![CDATA[Do you want to insert highlighted text inside Editor with Bb Codes or with Clean Parsed Html? Default value: <b>Bb Codes</b>.]]></phrase>
     <phrase title="option_quoteme_mode" version_id="0" version_string="1.0"><![CDATA[QuoteME! Mode]]></phrase>
@@ -210,7 +219,7 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
 	display:none;
 	font-size: 11px;
 }]]></template>
-    <template title="quoteME_menu" version_id="13" version_string="1.8.0"><![CDATA[<xen:require css="quoteME_menu.css" />
+    <template title="quoteME_menu" version_id="15" version_string="2.0.0"><![CDATA[<xen:require css="quoteME_menu.css" />
 
 <a 	id="toggleMeMenu" 
 	class="Tooltip off" 
@@ -220,6 +229,7 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
 	data-off="{xen:phrase sedo_quoteme_fastquotes_click_to_disable}"
 	data-trans="{$xenOptions.quoteme_transpage_mode}"
 	data-show="{xen:if '{$xenOptions.quoteme_activation}', '1', '{$visitor.getBrowser.isMobile}'}"
+	{xen:if '{$xenOptions.quoteme_disable_default_quotes}', 'dxq="1"'}
 >{xen:phrase sedo_quoteme_fastquotes_menu}</a>]]></template>
     <template title="quoteME_menu.css" version_id="13" version_string="1.8.0"><![CDATA[#toggleMeMenu{
 	display: none;

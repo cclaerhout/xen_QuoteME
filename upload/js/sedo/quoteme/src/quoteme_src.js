@@ -1,4 +1,4 @@
-/*QuoteME (2.0.1) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.1 rev.A) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -136,15 +136,13 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				if(!isInsideMessageContent)
 					return;
 
-				if(lastMove.changedTouches != undefined){
-					/**
-					 * Too difficult to deal with touch position on touch device
-					 * Let's use another mode (will require recent OS that support fixed position)
-					 **/
-					//e = lastMove.changedTouches[0];
-					
-					modePos = touch;
-				}
+				/***
+				 * Too difficult to deal with touch position on touch device
+				 * Let's use another mode (will require recent OS that support fixed position)
+				 * if(lastMove.changedTouches != undefined){ e = lastMove.changedTouches[0]; }
+				 ***/
+
+				modePos = touch;
 
 				//self._moveReset(true);//Not sure if useful
 
@@ -670,6 +668,8 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				onText = $e.data('title'),
 				offText = $e.data('off');
 			
+			self.disableXenQuote($e);
+			
 			if($e.data('show') || XenForo.isTouchBrowser()){
 				self.isOn = false;
 			}else{
@@ -698,6 +698,23 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 					
 					this.getTip().text(txt);
 				});
+			}
+		},
+		disableXenQuote: function($QmMenu)
+		{
+			var disableXenQuote = function(e){
+				e.preventDefault();
+				$('#QuickReply').data('QuickReply').scrollAndFocus();
+			}
+			
+			if($QmMenu.attr('dxq')){
+				$('a.ReplyQuote, a.MultiQuote').unbind('click').bind('click', disableXenQuote);
+
+				XenForo.QuickReplyTrigger = function($trigger){ 
+					$trigger.click(function(e){ 
+						disableXenQuote(e);
+					});
+				};
 			}
 		},
 		getObjQM: function(){
@@ -746,7 +763,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 	var sedoQuoteME = 'Sedo.QuoteME';
 
 	r('#toggleMeMenu', sedoQuoteME+'.menuInit');
-	r('#QuoteMeTrigger', sedoQuoteME+'.transTrigger');		
+	r('#QuoteMeTrigger', sedoQuoteME+'.transTrigger');
 	r('.messageContent', sedoQuoteME+'.init');
 	r('.quoteMeContent', sedoQuoteME+'.init');
 }
