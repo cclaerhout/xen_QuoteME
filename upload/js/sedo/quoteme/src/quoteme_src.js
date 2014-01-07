@@ -1,4 +1,4 @@
-/*QuoteME (2.0.0) by Cédric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.1) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -45,12 +45,14 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			/***
 			 * Execute QuoteME
 			 **/
-			$QM.unbind('touchstart click', qmClick).bind('touchstart click', qmClick);
+			var exeEvents ='touchstart click';
+			$QM.unbind(exeEvents, qmClick).bind(exeEvents, qmClick);
 		},
 		_initPressDown: function(e)
 		{
 			var self = this, $QM = $(self.QM), 
 				isMousedown = (e.type == 'mousedown'),
+				isTouchStart = (e.type == 'touchstart'),
 				isMousedownLeftClick = (isMousedown && e.which == 1),
 				isMousedownOtherClick = (isMousedown && e.which != 1);
 
@@ -67,14 +69,14 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			/* Check if there is already some selected text (after a right click) */
 			self.getSelectedText();
 
-			if(self.SelectedText && (isMousedownLeftClick || !isMousedown) )
+			if(self.SelectedText && (isMousedownLeftClick || isTouchStart) )
 				self.unSelect(); //If there is => unselect
 
 			/* Need to use the element to check if click element is QuoteMe div box */
 			if (e.target.id == 'QuoteMe')
 				return;
 
-			if($QM.is(":visible") && (isMousedownLeftClick || !isMousedown) ) {
+			if($QM.is(":visible") && (isMousedownLeftClick || isTouchStart) ) {
 				self.unSelect();
 				$QM.hide();
 				return;
@@ -86,7 +88,12 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			}			
 
 			/* Touch management */
-			if(!isMousedown && self.addEventSupport){
+			if(isTouchStart && self.addEventSupport){
+				/**
+				 * The addEventListener can't be activated on a single element.
+				 * It must be use with the document 
+				 **/
+				
 				self._moveReset();
 				document.addEventListener('touchmove', self._moveRec, false);
 				document.addEventListener('selectionchange', self._touchSelec, false);
@@ -96,6 +103,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		{
 			var self = this, $QM = $(self.QM),
 				isMouseup = (e.type == 'mouseup'),
+				isQmReady = (e.type == 'qm_ready'),
 				isMouseupLeftClick = (isMouseup && e.which == 1),
 				isMouseupOtherClick = (isMouseup && e.which != 1),
 				modePos = $QM.data('pos');
@@ -111,12 +119,24 @@ if(typeof Sedo === 'undefined') var Sedo = {};
       				return;
 
 			//Touch management
-			if(!isMouseup && self.addEventSupport){
+			if(isQmReady && self.addEventSupport){
 				var selectionHasChanged = self.selectionHasChanged,
 					lastMove = self.lastMove,
 					touch = 'touch';
 
-				if(lastMove && lastMove.changedTouches != undefined){
+				/***
+				 * Since the addEventListener binds functions on the document,
+				 * we must check if we're inside the quoteme activation zone
+				 ***/
+				 if(!lastMove || lastMove.target == undefined)
+				 	return;
+				
+				var isInsideMessageContent = $(lastMove.target).parents('.messageContent').length;
+				
+				if(!isInsideMessageContent)
+					return;
+
+				if(lastMove.changedTouches != undefined){
 					/**
 					 * Too difficult to deal with touch position on touch device
 					 * Let's use another mode (will require recent OS that support fixed position)
@@ -134,7 +154,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				};
 			}
       				
-      			if($QM.is(":hidden") && (isMouseupLeftClick || !isMouseup) ) {
+      			if($QM.is(":hidden") && (isMouseupLeftClick || isQmReady) ) {
       				var CheckCb = self.config(e.currentTarget); //We're in a proxy, do not use 'this' 
 
       				if(CheckCb === false) {
