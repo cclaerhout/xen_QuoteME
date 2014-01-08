@@ -1,4 +1,4 @@
-/*QuoteME (2.0.1 rev.B) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.2) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -20,19 +20,20 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		srcType: 'txt',
 		init: function($element)
 		{
-			var self = Sedo.QuoteME, $QM = $(self.QM),
+			var self = Sedo.QuoteME;
+
+			var $QM = $(self.QM),
 				pressDown = $.proxy(self, '_initPressDown'),
 				pressUp = $.proxy(self, '_initPressUp'),
 				qmClick = $.proxy(self, '_initQmClick');
 
 			self.$element = $element;
-			self.addEventSupport = (document.addEventListener != undefined);
 			
 			/***
 			 * Hide QuoteME + Get selection
 			 **/
 			self.eventTypeDown = null;
-			var downEvents = 'touchstart mousedown';
+			var downEvents = 'mousedown'; //Default event
 			$('body:not('+self.QM+')').unbind(downEvents, pressDown).bind(downEvents, pressDown);
 
 			/***
@@ -50,7 +51,13 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		},
 		_initPressDown: function(e)
 		{
-			var self = this, $QM = $(self.QM), 
+			var self = this;
+			var isInsideMessageContent = $(e.target).parents('.messageContent').length;
+
+			if(!self.isOn || !isInsideMessageContent)
+				return;
+
+			var $QM = $(self.QM), 
 				isMousedown = (e.type == 'mousedown'),
 				isTouchStart = (e.type == 'touchstart'),
 				isMousedownLeftClick = (isMousedown && e.which == 1),
@@ -63,9 +70,6 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 
 			self.eventTypeDown = e.type;
 			
-			if(!self.isOn)
-				return;
-
 			/* Check if there is already some selected text (after a right click) */
 			self.getSelectedText();
 
@@ -85,7 +89,11 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				
 				self._moveReset();
 				self.lastTouch = e;
-				document.addEventListener('selectionchange', self._touchSelec, false);
+				
+				if(self.selChangeActivated == undefined || !self.selChangeActivated){
+					document.addEventListener('selectionchange', self._touchSelec, false);
+					self.selChangeActivated = true;
+				}
 			}
 
 			if($QM.is(":visible") && (isMousedownLeftClick || isTouchStart) ) {
@@ -101,7 +109,12 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		},
 		_initPressUp: function(e)
 		{
-			var self = this, $QM = $(self.QM),
+			var self = this;
+
+      			if(!self.isOn)
+      				return;
+	
+			var $QM = $(self.QM),
 				isMouseup = (e.type == 'mouseup'),
 				isQmReady = (e.type == 'qm_ready'),
 				isMouseupLeftClick = (isMouseup && e.which == 1),
@@ -114,9 +127,6 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			}
 					
 			self.eventTypeUp = e.type;
-
-      			if(!self.isOn)
-      				return;
 
 			//Touch management
 			if(isQmReady && self.addEventSupport){
@@ -188,8 +198,11 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		_initQmClick: function(e)
 		{
 			e.preventDefault();//needed for fixed position if an element is below
-			
+
 			var self = this, $QM = $(self.QM);
+
+      			if(!self.isOn)
+      				return;
 
 			if (self.SelectedMode == 'txt') {
 				self.execute(self.SelectedText);
@@ -202,9 +215,10 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 					);
 				}
 			}
-	
-			$QM.hide();
-			return;
+			
+			if($QM.is(":visible")){
+				$QM.hide();
+			}
 		},
 		_touchSelec: function(e, b)
 		{
@@ -224,8 +238,8 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			var self = this;
 			
 			if(removeEvent == true){
-				document.removeEventListener('touchmove', self._moveRec, false);
-				document.removeEventListener('selectionchange', self._touchSelec ,false);			
+				document.removeEventListener('selectionchange', self._touchSelec ,false);
+				self.selChangeActivated = false;		
 			}
 			
 			self.selectionHasChanged = false;
@@ -235,6 +249,8 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			var self = this,
 				$editor = $('#'+self.editorID),
 				redactor = $editor.data('redactor');
+
+			self.addEventSupport = (document.addEventListener != undefined);
 
 			/*Editor datas*/
 			if (typeof tinyMCE !== 'undefined') {
@@ -655,8 +671,10 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				onText = $e.data('title'),
 				offText = $e.data('off');
 			
+			/*Init params - will enable to get editor config*/
+			self.getParams();
 			self.disableXenQuote($e);
-			
+					
 			if($e.data('show') || XenForo.isTouchBrowser()){
 				self.isOn = false;
 			}else{
@@ -665,13 +683,23 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 
 			$e.show().click(function(e){
 				e.preventDefault();
+
+				var downEvents = 'touchstart',
+					pressDown = $.proxy(self, '_initPressDown');
+
 				if($e.hasClass('off')){
 					$e.removeClass('off').addClass('on');
 					self.isOn = true;
+					//Bind the touchstart event
+					$('body:not('+self.QM+')').unbind(downEvents, pressDown).bind(downEvents, pressDown);					
 				}else{
 					$e.removeClass('on').addClass('off');
 					self.isOn = false;
+					//Unbind the touchstart event
+					$('body:not('+self.QM+')').unbind(downEvents, pressDown);
 				}
+				//Not sure why, but it seems to fix problems on iOS
+				e.stopImmediatePropagation();
 			});
 			
 			var tooltip = $e.data('tooltip');
