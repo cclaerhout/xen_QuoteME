@@ -1,4 +1,4 @@
-/*QuoteME (2.0.2 rev.A) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.2 rev.B) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -707,7 +707,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 					
 			if($e.data('show') || XenForo.isTouchBrowser()){
 				self.isOn = false;
-				self.redactorTouchFix(self);
+				$(window).load($.proxy(self, 'redactorTouchFix'));
 			}else{
 				return;
 			}
@@ -760,6 +760,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		},
 		redactorTouchFix: function(self)
 		{
+			var self = this;
 			if(!self.isRedactor) return;
 			
 			var ed = self.redactor, $ed = ed.$editor, blurTimeout;
