@@ -1,4 +1,4 @@
-/*QuoteME (2.0.2) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.2 rev.A) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -11,6 +11,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		QMT: '#QuoteMeTrigger',
 		QME: '#QuoteMeEl',
 		editorID: 'ctrl_message_html',
+		allowContent: '.messageContent',
 		isRte: false,
 		isRteBbCode: false,
 		isTinyMCE: false,
@@ -21,7 +22,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		init: function($element)
 		{
 			var self = Sedo.QuoteME;
-
+			
 			var $QM = $(self.QM),
 				pressDown = $.proxy(self, '_initPressDown'),
 				pressUp = $.proxy(self, '_initPressUp'),
@@ -46,22 +47,32 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			/***
 			 * Execute QuoteME
 			 **/
-			var exeEvents ='touchstart click';
+			var exeEvents ='click';
 			$QM.unbind(exeEvents, qmClick).bind(exeEvents, qmClick);
+		},
+		_bindTouch: function(status)
+		{
+			var self = this, 
+				downEvents = 'touchstart', 
+				pressDown = $.proxy(self, '_initPressDown'),
+				$target = $('body:not('+self.QM+')');
+				
+			if(status == undefined || status)
+				$target.unbind(downEvents, pressDown).bind(downEvents, pressDown);
+			else
+				$target.unbind(downEvents, pressDown);
 		},
 		_initPressDown: function(e)
 		{
-			var self = this;
-			var isInsideMessageContent = $(e.target).parents('.messageContent').length;
+			var self = this,
+				isInsideAllowContent = $(e.target).parents(self.allowContent).length;
 
-			if(!self.isOn || !isInsideMessageContent)
+			if(!self.isOn || !isInsideAllowContent)
 				return;
 
-			var $QM = $(self.QM), 
-				isMousedown = (e.type == 'mousedown'),
-				isTouchStart = (e.type == 'touchstart'),
-				isMousedownLeftClick = (isMousedown && e.which == 1),
-				isMousedownOtherClick = (isMousedown && e.which != 1);
+			/* Need to use the element to check if click element is QuoteMe div box */
+			if (e.target.id == 'QuoteMe')
+				return;
 
 			/* Prevent the two events to be executed at the same time */
 			if(self.eventTypeDown != undefined && self.eventTypeDown != e.type){
@@ -69,19 +80,21 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			}
 
 			self.eventTypeDown = e.type;
-			
+
+			var $QM = $(self.QM), 
+				isMousedown = (e.type == 'mousedown'),
+				isTouchEv = (e.type == 'touchstart'),
+				isMousedownLeftClick = (isMousedown && e.which == 1),
+				isMousedownOtherClick = (isMousedown && e.which != 1);
+
 			/* Check if there is already some selected text (after a right click) */
 			self.getSelectedText();
 
-			if(self.SelectedText && (isMousedownLeftClick || isTouchStart) )
+			if(self.SelectedText && (isMousedownLeftClick || isTouchEv) )
 				self.unSelect(); //If there is => unselect
 
-			/* Need to use the element to check if click element is QuoteMe div box */
-			if (e.target.id == 'QuoteMe')
-				return;
-
 			/* Touch management */
-			if(isTouchStart && self.addEventSupport){
+			if(isTouchEv && self.addEventSupport){
 				/**
 				 * The addEventListener can't be activated on a single element.
 				 * It must be use with the document 
@@ -96,7 +109,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				}
 			}
 
-			if($QM.is(":visible") && (isMousedownLeftClick || isTouchStart) ) {
+			if($QM.is(":visible") && (isMousedownLeftClick || isTouchEv) ) {
 				self.unSelect();
 				$QM.hide();
 				return;
@@ -141,9 +154,9 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				 if(!lastTouch || lastTouch.target == undefined)
 				 	return;
 				
-				var isInsideMessageContent = $(lastTouch.target).parents('.messageContent').length;
+				var isInsideAllowContent = $(lastTouch.target).parents(self.allowContent).length;
 				
-				if(!isInsideMessageContent)
+				if(!isInsideAllowContent)
 					return;
 
 				modePos = touch;
@@ -165,8 +178,8 @@ if(typeof Sedo === 'undefined') var Sedo = {};
       				}
 
      				if(modePos == 'absfix'){
-      					var pos = $(e.target).parents('.messageContent').position(),
-      					off = $(e.target).parents('.messageContent').offset();
+      					var pos = $(e.target).parents(self.allowContent).position(),
+      					off = $(e.target).parents(self.allowContent).offset();
       					
       					if(off == null || pos == null){
       						modePos = 'fb';
@@ -197,7 +210,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 		},
 		_initQmClick: function(e)
 		{
-			e.preventDefault();//needed for fixed position if an element is below
+			e.preventDefault(); //needed for fixed position if an element is below
 
 			var self = this, $QM = $(self.QM);
 
@@ -220,13 +233,30 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				$QM.hide();
 			}
 		},
-		_touchSelec: function(e, b)
+		_touchSelec: function(e)
 		{
-			var self = Sedo.QuoteME, $QM = $(self.QM);
-			
+			var self = Sedo.QuoteME, 
+				$QM = $(self.QM),
+				backupSelection = self.SelectedText;
+
+			self.getSelection();			
+
+			if($QM.is(':visible')){
+				/***
+				 * Trick to allow to use the click event on the QM box with touch devices
+				 * Explanation: a click on the QM box will also trigger the selectionchange event
+				 * which will trigger the getSelection() function, will will reset the SelectedText 
+				 * 
+				 * To deal with this problem, use the below function and prevent the qm_ready to be
+				 * triggered which would reset one more time the SelectedText
+				 **/
+				if(!self.SelectedText && backupSelection){
+					self.SelectedText = backupSelection;
+					return;
+				}
+			}
+
 			$QM.hide();
-	
-			self.getSelection();
 
 			if(self.SelectedText && self.SelectedText.length > 1){
 				self.selectionHasChanged = true;
@@ -677,6 +707,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 					
 			if($e.data('show') || XenForo.isTouchBrowser()){
 				self.isOn = false;
+				self.redactorTouchFix(self);
 			}else{
 				return;
 			}
@@ -684,19 +715,14 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			$e.show().click(function(e){
 				e.preventDefault();
 
-				var downEvents = 'touchstart',
-					pressDown = $.proxy(self, '_initPressDown');
-
 				if($e.hasClass('off')){
 					$e.removeClass('off').addClass('on');
 					self.isOn = true;
-					//Bind the touchstart event
-					$('body:not('+self.QM+')').unbind(downEvents, pressDown).bind(downEvents, pressDown);					
+					self._bindTouch();
 				}else{
 					$e.removeClass('on').addClass('off');
 					self.isOn = false;
-					//Unbind the touchstart event
-					$('body:not('+self.QM+')').unbind(downEvents, pressDown);
+					self._bindTouch(false);
 				}
 				//Not sure why, but it seems to fix problems on iOS
 				e.stopImmediatePropagation();
@@ -731,6 +757,28 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 					});
 				};
 			}
+		},
+		redactorTouchFix: function(self)
+		{
+			if(!self.isRedactor) return;
+			
+			var ed = self.redactor, $ed = ed.$editor, blurTimeout;
+			
+			$ed.on('focus click', function(e) {
+				if (blurTimeout)
+				{
+					clearTimeout(blurTimeout);
+					blurTimeout = null;
+				}
+				self._bindTouch(false);
+			})
+			.on('blur', function(e) {
+				blurTimeout = setTimeout(function() {
+					if(self.isOn){
+						self._bindTouch();
+					}
+				}, 200);
+			});
 		},
 		getObjQM: function(){
 			return $.jStorage.get('quoteme', false);
