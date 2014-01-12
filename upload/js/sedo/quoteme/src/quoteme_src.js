@@ -1,4 +1,4 @@
-/*QuoteME (2.0.2 rev.B) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.3) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -67,7 +67,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			var self = this,
 				isInsideAllowContent = $(e.target).parents(self.allowContent).length;
 
-			if(!self.isOn || !isInsideAllowContent)
+			if(!self.isOn)
 				return;
 
 			/* Need to use the element to check if click element is QuoteMe div box */
@@ -94,7 +94,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				self.unSelect(); //If there is => unselect
 
 			/* Touch management */
-			if(isTouchEv && self.addEventSupport){
+			if(isTouchEv && self.addEventSupport && isInsideAllowContent){
 				/**
 				 * The addEventListener can't be activated on a single element.
 				 * It must be use with the document 
@@ -132,7 +132,8 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				isQmReady = (e.type == 'qm_ready'),
 				isMouseupLeftClick = (isMouseup && e.which == 1),
 				isMouseupOtherClick = (isMouseup && e.which != 1),
-				modePos = $QM.data('pos');
+				modePos = $QM.data('pos'),
+				touch = 'touch';
 
 			//Prevent the two events to be executed at the same time
 			if(self.eventTypeUp != undefined && self.eventTypeUp != e.type){
@@ -144,8 +145,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			//Touch management
 			if(isQmReady && self.addEventSupport){
 				var selectionHasChanged = self.selectionHasChanged,
-					lastTouch = self.lastTouch,
-					touch = 'touch';
+					lastTouch = self.lastTouch;
 
 				/***
 				 * Since the addEventListener binds functions on the document,
@@ -560,7 +560,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			var self = this, 
 				editorID = self.editorID,
 				selectedText = self.SelectedText;
-				
+			
 			if(self.isTinyMCE){
 				if(tinyMCE.majorVersion > 3){
 					var args = {
