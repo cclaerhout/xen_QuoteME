@@ -1,4 +1,4 @@
-/*QuoteME (2.0.3) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.4) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -476,7 +476,11 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			var objQM = self.getObjQM(),
 			text = '';
 
-			if(!objQM) return;
+			if(!objQM){
+				alert($(self.QMT).data('timeup'));
+				$(self.QMT).hide();
+				return;
+			}
 			
 			$.each( objQM, function(k, v) {
 				self.SelectedText = v.data; 
@@ -724,8 +728,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 					self.isOn = false;
 					self._bindTouch(false);
 				}
-				//Not sure why, but it seems to fix problems on iOS
-				e.stopImmediatePropagation();
+				//e.stopImmediatePropagation();
 			});
 			
 			var tooltip = $e.data('tooltip');
@@ -808,6 +811,13 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 			
 			if(objQM !== false){
 				$e.trigger('click');
+
+				var activeMenu = function(){ 
+					$('#toggleMeMenu').trigger('click');
+				};
+				
+				$(window).load(activeMenu);
+				
 				var i = self.getObjIdx(objQM);
 
 				$e.parent().show();

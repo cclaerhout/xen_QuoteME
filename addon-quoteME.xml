@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="quoteME" title="QuoteME !" version_string="2.0.3" version_id="18" url="http://xenforo.com/community/resources/quoteme.1078/" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+<addon addon_id="quoteME" title="QuoteME !" version_string="2.0.4" version_id="19" url="http://xenforo.com/community/resources/quoteme.1078/" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -35,7 +35,7 @@
     <listener event_id="load_class_view" execute_order="10" callback_class="Sedo_QuoteME_Listener_MiscListeners" callback_method="extendViewPublicPostQuote" active="1" hint="XenForo_ViewPublic_Post_Quote" description="Extend ViewPublicPostQuote"/>
     <listener event_id="template_create" execute_order="10" callback_class="Sedo_QuoteME_Listener_PreloadTemplates" callback_method="template_preload" active="1" hint="" description="Preload templates"/>
     <listener event_id="template_post_render" execute_order="10" callback_class="Sedo_QuoteME_Listener_Templates" callback_method="postrender" active="1" hint="" description="Templates Post Render"/>
-    <listener event_id="tinyquattro_extra_plugins" execute_order="10" callback_class="Sedo_QuoteME_Listener_TinyQuattroPlugin" callback_method="addExtraPlugin" active="1" hint="" description="MCE Extra Plugin"/>
+    <listener event_id="tinyquattro_setup" execute_order="10" callback_class="Sedo_QuoteME_Listener_TinyQuattroPlugin" callback_method="addExtraPlugin" active="1" hint="" description="MCE Extra Plugin"/>
   </code_event_listeners>
   <cron/>
   <email_templates/>
@@ -148,6 +148,7 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
     <phrase title="sedo_quoteme_fastquotes_menu" version_id="6" version_string="1.5"><![CDATA[Fast Quotes]]></phrase>
     <phrase title="sedo_quoteme_getquotes" version_id="6" version_string="1.5"><![CDATA[Get Quotes]]></phrase>
     <phrase title="sedo_quoteme_quattro" version_id="12" version_string="1.7.4"><![CDATA[Enable the fast quotes mode]]></phrase>
+    <phrase title="sedo_quoteme_timeup" version_id="18" version_string="2.0.3"><![CDATA[Time's up!]]></phrase>
     <phrase title="style_property_group_QuoteMe_master" version_id="0" version_string="1.0"><![CDATA[QuoteME]]></phrase>
     <phrase title="style_property_group_QuoteMe_master_desc" version_id="0" version_string="1.0"><![CDATA[QuoteMe addon options]]></phrase>
     <phrase title="style_property_QuoteMeContainer_description_master" version_id="0" version_string="1.0"><![CDATA[]]></phrase>
@@ -175,7 +176,7 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
     </group>
   </style_properties>
   <templates>
-    <template title="quoteME" version_id="6" version_string="1.5"><![CDATA[<xen:require css="quoteME.css" />
+    <template title="quoteME" version_id="18" version_string="2.0.3"><![CDATA[<xen:require css="quoteME.css" />
 
 <xen:if is="{$xenOptions.quoteme_debug_js_src}">
 		<xen:require js="js/sedo/quoteme/src/jquery.json-2.4.js" />
@@ -199,8 +200,8 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
 	data-trans="{$xenOptions.quoteme_transpage_mode}"
 >{xen:phrase quoteme}</div>
 
-<div class="quotemetrigger"><a id="QuoteMeTrigger" href="javascript:">{xen:phrase sedo_quoteme_getquotes} (<span id="QuoteMeEl"></span>)</a></div>]]></template>
-    <template title="quoteME.css" version_id="13" version_string="1.8.0"><![CDATA[.quote_me{
+<div class="quotemetrigger"><a id="QuoteMeTrigger" href="javascript:" class="button" data-timeup="{xen:phrase sedo_quoteme_timeup}">{xen:phrase sedo_quoteme_getquotes} (<span id="QuoteMeEl"></span>)</a></div>]]></template>
+    <template title="quoteME.css" version_id="18" version_string="2.0.3"><![CDATA[.quote_me{
 	{xen:property QuoteMeContainer}
 	display:none;
 	position:absolute;
@@ -219,7 +220,11 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
 
 .quotemetrigger{
 	display:none;
+	position:absolute;
 	font-size: 11px;
+	margin-top: 6px;
+	margin-left: 1px;
+	z-index: 90;	
 }]]></template>
     <template title="quoteME_menu" version_id="15" version_string="2.0.0"><![CDATA[<xen:require css="quoteME_menu.css" />
 

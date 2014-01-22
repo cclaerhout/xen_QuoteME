@@ -1,7 +1,7 @@
 <?php
 class Sedo_QuoteME_Listener_TinyQuattroPlugin
 {
-	public static function addExtraPlugin(&$plugins)
+	public static function addExtraPlugin(array &$plugins, array &$mceOptions, array &$mceBtnCss, array $extraValues)
 	{
 		$options = XenForo_Application::get('options');
 		$visitor = XenForo_Visitor::getInstance();
