@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="quoteME" title="QuoteME !" version_string="2.0.4" version_id="19" url="http://xenforo.com/community/resources/quoteme.1078/" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
+<addon addon_id="quoteME" title="QuoteME !" version_string="2.0.5" version_id="20" url="http://xenforo.com/community/resources/quoteme.1078/" install_callback_class="" install_callback_method="" uninstall_callback_class="" uninstall_callback_method="">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -143,6 +143,8 @@ Try  then the new "absolute with correction" method (which is now set by default
 If absolute methods don't work at all, just use the Fixed positioning method.]]></phrase>
     <phrase title="sedo_quoteme_appearance_touch" version_id="17" version_string="2.0.2"><![CDATA[Fixed (Touch mode)]]></phrase>
     <phrase title="sedo_quoteme_direct" version_id="6" version_string="1.5"><![CDATA[Direct]]></phrase>
+    <phrase title="sedo_quoteme_fastquotes" version_id="19" version_string="2.0.4"><![CDATA[Fast quotes]]></phrase>
+    <phrase title="sedo_quoteme_fastquotes_alert" version_id="19" version_string="2.0.4"><![CDATA[The fastquotes mode is now enabled. You can now select some text in the above messages and quote them inside the editor.]]></phrase>
     <phrase title="sedo_quoteme_fastquotes_click_to_activate" version_id="6" version_string="1.5"><![CDATA[Click to enable]]></phrase>
     <phrase title="sedo_quoteme_fastquotes_click_to_disable" version_id="6" version_string="1.5"><![CDATA[Click to disable]]></phrase>
     <phrase title="sedo_quoteme_fastquotes_menu" version_id="6" version_string="1.5"><![CDATA[Fast Quotes]]></phrase>
@@ -261,6 +263,16 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
       <replace><![CDATA[$0 
 		<xen:include template="quoteME_menu" />]]></replace>
     </modification>
+    <modification template="tiny_quattro_phrases" modification_key="sedo_quoteme_mce4_phrases" description="Add phrases to Tiny Quattro" execution_order="10" enabled="1" action="str_replace">
+      <find><![CDATA[<xen:comment>extend_i18n</xen:comment>]]></find>
+      <replace><![CDATA[$0
+		"Fast quotes": "{xen:jsescape {xen:phrase sedo_quoteme_fastquotes}}",]]></replace>
+    </modification>
+    <modification template="tiny_quattro_phrases" modification_key="sedo_quoteme_mce4_xenphrases" description="Add phrases to Tiny Quattro 2" execution_order="10" enabled="1" action="str_replace">
+      <find><![CDATA[<xen:comment>xenphrases</xen:comment>]]></find>
+      <replace><![CDATA[<xen:comment>xenphrases</xen:comment>
+	quoteme_alert: "{xen:jsescape {xen:phrase sedo_quoteme_fastquotes_alert}}",]]></replace>
+    </modification>
   </public_template_modifications>
   <bb_code_media_sites/>
   <template_modifications>
@@ -272,6 +284,16 @@ If absolute methods don't work at all, just use the Fixed positioning method.]]>
       <search_value><![CDATA[#SelectionCountContainer[^"]*?"[^>]*?>#ui]]></search_value>
       <replace_value><![CDATA[$0 
 	<xen:include template="quoteME_menu" />]]></replace_value>
+    </modification>
+    <modification title="sedo_quoteme_mce4_phrases" template_title="tiny_quattro_phrases" execute_order="10" modification_type="str_replace" callback_class="" callback_method="" description="Add phrases to Tiny Quattro" version_id="19" version_string="2.0.5" active="1">
+      <search_value><![CDATA[<xen:comment>extend_i18n</xen:comment>]]></search_value>
+      <replace_value><![CDATA[<xen:comment>extend_i18n</xen:comment>
+		"Fast quotes": "{xen:jsescape {xen:phrase sedo_quoteme_fastquotes}}",]]></replace_value>
+    </modification>
+    <modification title="sedo_quoteme_mce4_xenphrases" template_title="tiny_quattro_phrases" execute_order="10" modification_type="str_replace" callback_class="" callback_method="" description="Add phrases to Tiny Quattro 2" version_id="19" version_string="2.0.5" active="1">
+      <search_value><![CDATA[<xen:comment>xenphrases</xen:comment>]]></search_value>
+      <replace_value><![CDATA[<xen:comment>xenphrases</xen:comment>
+	quoteme_alert: "{xen:jsescape {xen:phrase sedo_quoteme_fastquotes_alert}}",]]></replace_value>
     </modification>
   </template_modifications>
 </addon>

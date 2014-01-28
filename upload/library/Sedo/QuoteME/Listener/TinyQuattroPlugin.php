@@ -1,28 +1,21 @@
 <?php
 class Sedo_QuoteME_Listener_TinyQuattroPlugin
 {
-	public static function addExtraPlugin(array &$plugins, array &$mceOptions, array &$mceBtnCss, array $extraValues)
+	public static function addExtraPlugin($mceConfigObj)
 	{
-		$options = XenForo_Application::get('options');
-		$visitor = XenForo_Visitor::getInstance();
-	
-		//Check if mobile
-		if( class_exists('Sedo_DetectBrowser_Listener_Visitor') && isset($visitor->getBrowser['isMobile']))
-		{
-			//External Addon
-			$isMobile = $visitor->getBrowser['isMobile'];
-		}
-		else
-		{
-			//XenForo
-			$isMobile =  XenForo_Visitor::isBrowsingWith('mobile');
-		}
-			
-		if($isMobile && $options->quoteme_debug_mobileoff)
+		if(is_array($mceConfigObj))
 		{
 			return;
 		}
 		
-		$plugins[] = 'xenquoteme';
+		$options = XenForo_Application::get('options');
+		
+		if($mceConfigObj->isMobile() && $options->quoteme_debug_mobileoff)
+		{
+			return;
+		}
+		
+		$mceConfigObj->addMcePlugin('xenquoteme');
+		$mceConfigObj->addMenuItem('quoteme', 'tools');
 	}
 }
