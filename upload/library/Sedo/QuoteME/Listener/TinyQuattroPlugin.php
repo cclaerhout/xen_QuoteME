@@ -10,7 +10,7 @@ class Sedo_QuoteME_Listener_TinyQuattroPlugin
 		
 		$options = XenForo_Application::get('options');
 		
-		if($mceConfigObj->isMobile() && $options->quoteme_debug_mobileoff)
+		if($options->quoteme_debug_mobileoff)
 		{
 			return;
 		}

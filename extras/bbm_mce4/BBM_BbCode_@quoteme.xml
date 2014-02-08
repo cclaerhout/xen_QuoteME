@@ -8,6 +8,8 @@
       <example><![CDATA[#]]></example>
       <active>1</active>
       <display_help>0</display_help>
+      <bbcode_id></bbcode_id>
+      <bbcode_addon>quoteME</bbcode_addon>
     </General>
     <Methods>
       <Replacement>
