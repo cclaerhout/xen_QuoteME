@@ -1,4 +1,4 @@
-/*QuoteME (2.0.4) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.0.5.2) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -576,6 +576,7 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 					tinyMCE.getInstanceById(editorID).execCommand('mceInsertContent', false, selectedText);
 				}
 			}else if(self.isRedactor){
+				self.redactor.focus(true); //workaround to fix Redactor bug
 				self.redactor.insertHtml(selectedText);//bug on IE (the last quote is preprend instead of being append to the content
 			}
 		},
