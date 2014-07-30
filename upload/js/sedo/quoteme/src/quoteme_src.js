@@ -1,4 +1,4 @@
-/*QuoteME (2.0.5.2) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.1.0) by Cedric CLAERHOUT - Licence: CC by*/
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
@@ -133,7 +133,8 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 				isMouseupLeftClick = (isMouseup && e.which == 1),
 				isMouseupOtherClick = (isMouseup && e.which != 1),
 				modePos = $QM.data('pos'),
-				touch = 'touch';
+				touch = 'touch',
+				target = e.currentTarget;
 
 			//Prevent the two events to be executed at the same time
 			if(self.eventTypeUp != undefined && self.eventTypeUp != e.type){
@@ -167,10 +168,12 @@ if(typeof Sedo === 'undefined') var Sedo = {};
 					$QM.hide();
 					return;
 				};
+				
+				target = lastTouch.target;
 			}
       				
       			if($QM.is(":hidden") && (isMouseupLeftClick || isQmReady) ) {
-      				var CheckCb = self.config(e.currentTarget); //We're in a proxy, do not use 'this' 
+      				var CheckCb = self.config(target); //We're in a proxy, do not use 'this' 
 
       				if(CheckCb === false) {
       					$QM.hide();
