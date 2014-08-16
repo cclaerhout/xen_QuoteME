@@ -1,4 +1,5 @@
-/*QuoteME (2.1.0) by Cedric CLAERHOUT - Licence: CC by*/
+/*QuoteME (2.1.1) by Cedric CLAERHOUT - Licence: CC by*/
+XenForo.SelectQuotable = function(){};
 if(typeof Sedo === 'undefined') var Sedo = {};
 
 !function($, window, document, undefined)
